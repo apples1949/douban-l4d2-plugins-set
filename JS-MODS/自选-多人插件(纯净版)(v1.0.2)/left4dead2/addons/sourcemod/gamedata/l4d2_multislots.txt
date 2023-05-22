@@ -1,0 +1,54 @@
+"Games"
+{
+	"left4dead2"
+	{
+		"Signatures"
+		{
+			"CTerrorPlayer::RoundRespawn"
+			{
+				"library"	"server"
+				"linux"	"@_ZN13CTerrorPlayer12RoundRespawnEv"
+				"windows"	"\x2A\x2A\x2A\x2A\x2A\x2A\x2A\x2A\xE8\x2A\x2A\x2A\x2A\x84\x2A\x75\x2A\x8B\x2A\xE8\x2A\x2A\x2A\x2A\xC6\x86"
+			}
+			"SurvivorBot::SetHumanSpectator"
+			{
+				"library"	"server"
+				"linux"	"@_ZN11SurvivorBot17SetHumanSpectatorEP13CTerrorPlayer"
+				"windows"	"\x2A\x2A\x2A\x2A\x2A\x2A\x83\xBE\x2A\x2A\x2A\x2A\x2A\x7E\x2A\x32\x2A\x5E\x5D\xC2\x2A\x2A\x8B\x0D"
+			}
+			"CTerrorPlayer::TakeOverBot"
+			{
+				"library"	"server"
+				"linux"	"@_ZN13CTerrorPlayer11TakeOverBotEb"
+				"windows"	"\x2A\x2A\x2A\x2A\x2A\x2A\x2A\x2A\x2A\xA1\x2A\x2A\x2A\x2A\x33\x2A\x89\x2A\x2A\x53\x56\x8D"
+			}
+		}
+		"Offsets"
+		{
+			"RoundRespawn_Offset"
+			{
+				"linux"	"25"
+				"windows"	"15"
+			}
+			"RoundRespawn_Byte"
+			{
+				"linux"	"117"
+				"windows"	"117"
+			}
+		}
+		"Addresses"
+		{
+			"CTerrorPlayer::RoundRespawn"
+			{
+				"linux"
+				{
+					"signature"	"CTerrorPlayer::RoundRespawn"
+				}
+				"windows"
+				{
+					"signature"	"CTerrorPlayer::RoundRespawn"
+				}
+			}
+		}
+	}
+}

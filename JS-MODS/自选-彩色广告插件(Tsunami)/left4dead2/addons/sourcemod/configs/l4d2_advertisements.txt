@@ -1,0 +1,23 @@
+"Advertisements"
+{
+	"1"
+	{
+		"type"	"S"
+		"text"	"{GREEN}[公告]{TEAM}欢迎加入玩家联机群,QQ群号:{GREEN}620707089"
+	}
+	"2"
+	{
+		"type"	"S"
+		"text"	"{GREEN}[公告]{TEAM}欢迎加入玩家联机群,QQ群号:{GREEN}620707089"
+	}
+	"3"
+	{
+		"type"	"S"
+		"text"	"{GREEN}[公告]{TEAM}欢迎加入玩家联机群,QQ群号:{GREEN}620707089"
+	}
+	"4"
+	{
+		"type"	"S"
+		"text"	"{GREEN}[公告]{TEAM}欢迎加入玩家联机群,QQ群号:{GREEN}620707089"
+	}
+}
