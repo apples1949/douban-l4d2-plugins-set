@@ -52,7 +52,7 @@ void GetFileContent()
 	if(FileExists(g_sPath))//判断文件是否存在.
 		SetGameDescription();//文件已存在,获取文件里的内容.
 	else
-		IsWriteGameDescription("Left 4 Dead 3");//文件不存在,创建文件并写入默认内容.
+		IsWriteGameDescription("生存之旅 3");//文件不存在,创建文件并写入默认内容.
 }
 
 //获取文件里的内容.

@@ -45,7 +45,7 @@ static const char g_sZombieName[][] =
 public Plugin myinfo = 
 {
 	name 			= "l4d2_player_decal",
-	author 			= "",
+	author 			= "豆瓣酱な",
 	description 	= "生还者或感染者使用喷漆时提示.",
 	version 		= PLUGIN_VERSION,
 	url 			= "N/A"
