@@ -132,6 +132,7 @@ public void OnPluginStart()
 public void OnConfigsExecuted()
 {
 	IsLoadGameCFG();
+	IsGetOtherCvars();
 }
 
 /// 初始化
@@ -310,7 +311,6 @@ void vStatsConditionPatch(bool bPatch)
 
 public void OnMapStart()
 {
-	IsGetOtherCvars();
 	g_bRoundStarted = true;
 	gbFirstItemPickedUp = false;
 	
