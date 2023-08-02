@@ -132,7 +132,7 @@ void GetPlayerListMenu(int client, int item)
 			menu.AddItem(sUID, sName);
 		}
 	}
-	menu.ExitBackButton = true;
+	menu.ExitBackButton = true;//菜单首页显示数字8返回上一页选项.
 	menu.DisplayAt(client, item, MENU_TIME_FOREVER);
 }
 

@@ -222,6 +222,7 @@ public void eReviveSuccess(Event event, const char[] name, bool dontBroadcast)
 				SetEntProp(iEntity, Prop_Send, "m_iGlowType", 3);
 				SetEntProp(iEntity, Prop_Send, "m_glowColorOverride", iGlowColour);
 				SetEntProp(iEntity, Prop_Send, "m_nGlowRange", iGlowRange);
+				//PrintToChat(iClient, "\x04[提示]\x05玩家黑白:1.");
 				
 			}
 			else
@@ -229,6 +230,7 @@ public void eReviveSuccess(Event event, const char[] name, bool dontBroadcast)
 				SetEntProp(iClient, Prop_Send, "m_iGlowType", 3);
 				SetEntProp(iClient, Prop_Send, "m_glowColorOverride", iGlowColour);
 				SetEntProp(iClient, Prop_Send, "m_nGlowRange", iGlowRange);
+				//PrintToChat(iClient, "\x04[提示]\x05玩家黑白:2.");
 			}
 		}
 		else
@@ -236,6 +238,7 @@ public void eReviveSuccess(Event event, const char[] name, bool dontBroadcast)
 			SetEntProp(iClient, Prop_Send, "m_iGlowType", 3);
 			SetEntProp(iClient, Prop_Send, "m_glowColorOverride", iGlowColour);
 			SetEntProp(iClient, Prop_Send, "m_nGlowRange", iGlowRange);
+			//PrintToChat(iClient, "\x04[提示]\x05玩家黑白:3.");
 		}
 	}
 	
@@ -325,15 +328,18 @@ public void eHealSuccess(Event event, const char[] name, bool dontBroadcast)
 			if(iEntity > MaxClients)
 			{
 				ResetGlows(iEntity);
+				//PrintToChat(iClient, "\x04[提示]\x05玩家恢复:1.");
 			}
 			else
 			{
 				ResetGlows(iClient);
+				//PrintToChat(iClient, "\x04[提示]\x05玩家恢复:2.");
 			}
 		}
 		else
 		{
 			ResetGlows(iClient);
+			//PrintToChat(iClient, "\x04[提示]\x05玩家恢复:3.");
 		}
 	}
 	
@@ -455,83 +461,18 @@ public void ePlayerDeath(Event event, const char[] name, bool dontBroadcast)
 		if(iEntity > MaxClients)
 		{
 			ResetGlows(iEntity);
+			//PrintToChat(iClient, "\x04[提示]\x05玩家死亡:1.");
 		}
 		else
 		{
 			ResetGlows(iClient);
+			//PrintToChat(iClient, "\x04[提示]\x05玩家死亡:2.");
 		}
 	}
 	else
 	{
 		ResetGlows(iClient);
-	}
-}
-
-public void ePlayerSpawn(Event event, const char[] name, bool dontBroadcast)
-{
-	if(!bEnabled)
-		return;
-	
-	static int iClient;
-	iClient = GetClientOfUserId(GetEventInt(event, "userid"));
-	
-	if(iClient < 1 || iClient > MaxClients)
-		return;
-	
-	if(!IsClientInGame(iClient) || GetClientTeam(iClient) != 2)
-		return;
-
-	if(GetMaxReviveCount() <= 0)
-		return;
-		
-	if(GetEntProp(iClient, Prop_Send, "m_currentReviveCount") < GetMaxReviveCount())
-	{
-		if(bLMC_Available)
-		{
-			static int iEntity;
-			iEntity = LMC_GetClientOverlayModel(iClient);
-			if(iEntity > MaxClients)
-			{
-				ResetGlows(iEntity);
-			}
-			else
-			{
-				ResetGlows(iClient);
-			}
-		}
-		else
-		{
-			ResetGlows(iClient);
-		}
-		bGlow[iClient] = false;
-		return;
-	}
-	
-	
-	bGlow[iClient] = true;
-	if(bLMC_Available)
-	{
-		static int iEntity;
-		iEntity = LMC_GetClientOverlayModel(iClient);
-		if(iEntity > MaxClients)
-		{
-			SetEntProp(iEntity, Prop_Send, "m_iGlowType", 3);
-			SetEntProp(iEntity, Prop_Send, "m_glowColorOverride", iGlowColour);
-			SetEntProp(iEntity, Prop_Send, "m_nGlowRange", iGlowRange);
-			
-		}
-		else
-		{
-			SetEntProp(iClient, Prop_Send, "m_iGlowType", 3);
-			SetEntProp(iClient, Prop_Send, "m_glowColorOverride", iGlowColour);
-			SetEntProp(iClient, Prop_Send, "m_nGlowRange", iGlowRange);
-		}
-	}
-	else
-	{
-		SetEntProp(iClient, Prop_Send, "m_iGlowType", 3);
-		SetEntProp(iClient, Prop_Send, "m_glowColorOverride", iGlowColour);
-		SetEntProp(iClient, Prop_Send, "m_nGlowRange", iGlowRange);
+		//PrintToChat(iClient, "\x04[提示]\x05玩家死亡:3.");
 	}
 }
 
@@ -555,29 +496,99 @@ public void eTeamChange(Event event, const char[] name, bool dontBroadcast)
 		iEntity = LMC_GetClientOverlayModel(iClient);
 		if(iEntity > MaxClients)
 		{
-			SetEntProp(iEntity, Prop_Send, "m_iGlowType", 0);
-			SetEntProp(iEntity, Prop_Send, "m_glowColorOverride", 0);
-			SetEntProp(iEntity, Prop_Send, "m_nGlowRange", 0);
-			SetEntProp(iEntity, Prop_Send, "m_bFlashing", 0, 1);
+			ResetGlows(iEntity);
+			//PrintToChat(iClient, "\x04[提示]\x05玩家换队:1.");
 		}
 		else
 		{
-			SetEntProp(iClient, Prop_Send, "m_iGlowType", 0);
-			SetEntProp(iClient, Prop_Send, "m_glowColorOverride", 0);
-			SetEntProp(iClient, Prop_Send, "m_nGlowRange", 0);
-			SetEntProp(iClient, Prop_Send, "m_bFlashing", 0, 1);
+			ResetGlows(iClient);
+			//PrintToChat(iClient, "\x04[提示]\x05玩家换队:2.");
 		}
 	}
 	else
 	{
-		SetEntProp(iClient, Prop_Send, "m_iGlowType", 0);
-		SetEntProp(iClient, Prop_Send, "m_glowColorOverride", 0);
-		SetEntProp(iClient, Prop_Send, "m_nGlowRange", 0);
-		SetEntProp(iClient, Prop_Send, "m_bFlashing", 0, 1);
+		ResetGlows(iClient);
+		//PrintToChat(iClient, "\x04[提示]\x05玩家换队:3.");
 	}
-	
 }
 
+public void ePlayerSpawn(Event event, const char[] name, bool dontBroadcast)
+{
+	if(!bEnabled)
+		return;
+	static int iClient;
+	iClient = GetClientOfUserId(GetEventInt(event, "userid"));
+	
+	if(iClient < 1 || iClient > MaxClients)
+		return;
+	RequestFrame(IsPlayerSpawn, GetClientUserId(iClient));
+}
+
+void IsPlayerSpawn(int iClient)
+{
+	if ((iClient = GetClientOfUserId(iClient)))
+	{
+		if(!IsClientInGame(iClient) || GetClientTeam(iClient) != 2)
+		return;
+
+		if(GetMaxReviveCount() <= 0)
+			return;
+			
+		if(GetEntProp(iClient, Prop_Send, "m_currentReviveCount") < GetMaxReviveCount())
+		{
+			if(bLMC_Available)
+			{
+				static int iEntity;
+				iEntity = LMC_GetClientOverlayModel(iClient);
+				if(iEntity > MaxClients)
+				{
+					ResetGlows(iEntity);
+					//PrintToChat(iClient, "\x04[提示]\x05玩家出现:1.");
+				}
+				else
+				{
+					ResetGlows(iClient);
+					//PrintToChat(iClient, "\x04[提示]\x05玩家出现:2.");
+				}
+			}
+			else
+			{
+				ResetGlows(iClient);
+				//PrintToChat(iClient, "\x04[提示]\x05玩家出现:3.");
+			}
+			bGlow[iClient] = false;
+			return;
+		}
+		
+		bGlow[iClient] = true;
+		if(bLMC_Available)
+		{
+			static int iEntity;
+			iEntity = LMC_GetClientOverlayModel(iClient);
+			if(iEntity > MaxClients)
+			{
+				SetEntProp(iEntity, Prop_Send, "m_iGlowType", 3);
+				SetEntProp(iEntity, Prop_Send, "m_glowColorOverride", iGlowColour);
+				SetEntProp(iEntity, Prop_Send, "m_nGlowRange", iGlowRange);
+				//PrintToChat(iClient, "\x04[提示]\x05玩家出现(黑白):1.");
+			}
+			else
+			{
+				SetEntProp(iClient, Prop_Send, "m_iGlowType", 3);
+				SetEntProp(iClient, Prop_Send, "m_glowColorOverride", iGlowColour);
+				SetEntProp(iClient, Prop_Send, "m_nGlowRange", iGlowRange);
+				//PrintToChat(iClient, "\x04[提示]\x05玩家出现(黑白):2.");
+			}
+		}
+		else
+		{
+			SetEntProp(iClient, Prop_Send, "m_iGlowType", 3);
+			SetEntProp(iClient, Prop_Send, "m_glowColorOverride", iGlowColour);
+			SetEntProp(iClient, Prop_Send, "m_nGlowRange", iGlowRange);
+			//PrintToChat(iClient, "\x04[提示]\x05玩家出现(黑白):3.");
+		}
+	}
+}
 
 public void LMC_OnClientModelApplied(int iClient, int iEntity, const char sModel[PLATFORM_MAX_PATH], int bBaseReattach)
 {

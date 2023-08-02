@@ -60,11 +60,11 @@ public void OnPluginStart() {
 	g_aBotData = new ArrayList();
 
 	CreateConVar("transition_restore_fix_version", PLUGIN_VERSION, "Transition Restore Fix plugin version.", FCVAR_NOTIFY|FCVAR_DONTRECORD);
-	g_cChooseBotData =		CreateConVar("choose_bot_data", "0", "What to choose bot data according to after restart? (0=Model Name, otherwise=Character)", FCVAR_NOTIFY);
+	g_cChooseBotData =		CreateConVar("choose_bot_data", "0", "重启后根据什么选择机器人数据? 0=模式名称, 1=生还者名称.", FCVAR_NOTIFY);
 	g_cvPrecacheAllSur =	FindConVar("precache_all_survivors");
 
 	g_cChooseBotData.AddChangeHook(CvarChanged);
-	AutoExecConfig(true);
+	AutoExecConfig(true, "transition_restore_fix");//创建指定名称的CFG.
 }
 
 public void OnPluginEnd() {
