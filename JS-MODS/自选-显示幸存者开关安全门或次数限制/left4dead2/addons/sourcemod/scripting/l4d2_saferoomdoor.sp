@@ -1,3 +1,9 @@
+/*
+ *	
+ *	1:封禁函数少写了个非必要函数,但是某些时候可能需要,所有加上了.
+ *
+ */
+
 #pragma semicolon 1
 //強制1.7以後的新語法
 #pragma newdecls required
@@ -195,12 +201,12 @@ public void Event_DoorOpen(Event event, const char[] name, bool dontBroadcast)
 								{
 									if (g_EnableHandle_c <= 0)
 									{
-										BanClient(client, g_EnableHandle_c, BANFLAG_AUTO, "", "[提示]服务器自动永久封禁玩门的玩家");
+										BanClient(client, g_EnableHandle_c, BANFLAG_AUTO|BANFLAG_NOKICK, "服务器自动封禁玩门的玩家", "服务器自动永久封禁玩门的玩家", "sm_ban");
 										PrintToChatAll("\x04[提示]\x03%s\x05玩门达到限制\x03%d\x05次而被永久封禁.", clientName, g_EnableHandle_e);//聊天窗提示.
 									}
 									else
 									{
-										BanClient(client, g_EnableHandle_c, BANFLAG_AUTO, "", "[提示]服务器自动临时封禁玩门的玩家");
+										BanClient(client, g_EnableHandle_c, BANFLAG_AUTO|BANFLAG_NOKICK, "服务器自动封禁玩门的玩家", "服务器自动临时封禁玩门的玩家", "sm_ban");
 										PrintToChatAll("\x04[提示]\x03%s\x05玩门达到限制\x03%d\x05次而被封禁\x03%d\x05分钟.", clientName, g_EnableHandle_e, g_EnableHandle_c);//聊天窗提示.
 									}
 								}
@@ -262,12 +268,12 @@ public void Event_DoorClose(Event event, const char[] name, bool dontBroadcast)
 								{
 									if (g_EnableHandle_c <= 0)
 									{
-										BanClient(client, g_EnableHandle_c, BANFLAG_AUTO, "", "[提示]服务器自动永久封禁玩门的玩家");
+										BanClient(client, g_EnableHandle_c, BANFLAG_AUTO|BANFLAG_NOKICK, "服务器自动封禁玩门的玩家", "服务器自动永久封禁玩门的玩家", "sm_ban");
 										PrintToChatAll("\x04[提示]\x03%s\x05玩门达到限制\x03%d\x05次而被永久封禁.", clientName, g_EnableHandle_e);//聊天窗提示.
 									}
 									else
 									{
-										BanClient(client, g_EnableHandle_c, BANFLAG_AUTO, "", "[提示]服务器自动临时封禁玩门的玩家");
+										BanClient(client, g_EnableHandle_c, BANFLAG_AUTO|BANFLAG_NOKICK, "服务器自动封禁玩门的玩家", "服务器自动临时封禁玩门的玩家", "sm_ban");
 										PrintToChatAll("\x04[提示]\x03%s\x05玩门达到限制\x03%d\x05次而被封禁\x03%d\x05分钟.", clientName, g_EnableHandle_e, g_EnableHandle_c);//聊天窗提示.
 									}
 								}

@@ -3,21 +3,21 @@
 	"1"
 	{
 		"type"	"S"
-		"text"	"{GREEN}[公告]{TEAM}欢迎加入玩家联机群,QQ群号:{GREEN}620707089"
+		"text"	"{GREEN}[公告]{TEAM}输入指令{GREEN}!buy{TEAM}可打开购物菜单."
 	}
 	"2"
 	{
 		"type"	"S"
-		"text"	"{GREEN}[公告]{TEAM}欢迎加入玩家联机群,QQ群号:{GREEN}620707089"
+		"text"	"{GREEN}[公告]{TEAM}输入指令{GREEN}!buy{TEAM}可打开购物菜单."
 	}
 	"3"
 	{
 		"type"	"S"
-		"text"	"{GREEN}[公告]{TEAM}欢迎加入玩家联机群,QQ群号:{GREEN}620707089"
+		"text"	"{GREEN}[公告]{TEAM}输入指令{GREEN}!buy{TEAM}可打开购物菜单."
 	}
 	"4"
 	{
 		"type"	"S"
-		"text"	"{GREEN}[公告]{TEAM}欢迎加入玩家联机群,QQ群号:{GREEN}620707089"
+		"text"	"{GREEN}[公告]{TEAM}输入指令{GREEN}!buy{TEAM}可打开购物菜单."
 	}
 }

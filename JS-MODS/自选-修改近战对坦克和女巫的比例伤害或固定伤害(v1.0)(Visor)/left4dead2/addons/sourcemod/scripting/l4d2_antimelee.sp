@@ -105,14 +105,14 @@ public Action WitchOnTakeDamage(int victim, int &attacker, int &inflictor, float
 	if(g_fMeleeWitchDamage < 0.0 || damage == 0.0 || !IsSurvivor(attacker) || !IsWitch(victim) || !IsMelee(inflictor))
 		return Plugin_Continue;
 	
-	if(g_fMeleeTankDamage == 0.0)
+	if(g_fMeleeWitchDamage == 0.0)
 	{
 		PrintHintText(attacker, "女巫免疫近战伤害.");
 		return Plugin_Handled;
 	}
 	else
 	{
-		damage = g_fMeleeTankDamage > 1.0 ? g_fMeleeTankDamage : g_fMeleeTankDamage * GetEntProp(victim, Prop_Data, "m_iMaxHealth");
+		damage = g_fMeleeWitchDamage > 1.0 ? g_fMeleeWitchDamage : g_fMeleeWitchDamage * GetEntProp(victim, Prop_Data, "m_iMaxHealth");
 		PrintHintText(attacker, "你的近战对女巫造成了%d点伤害.", RoundFloat(damage));
 	}
 	return Plugin_Changed;

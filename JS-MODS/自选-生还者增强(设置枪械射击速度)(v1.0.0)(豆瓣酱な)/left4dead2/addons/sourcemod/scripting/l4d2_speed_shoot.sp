@@ -76,7 +76,7 @@ char g_sWeaponShoot[][][] =
 };
 
 float  g_fWeaponShoot[sizeof(g_sWeaponShoot)][MAXPLAYERS+1];
-float  g_fShootSpeed[sizeof(g_sWeaponShoot)] = {1.0, ...};
+float  g_fShootSpeed[sizeof(g_sWeaponShoot)] = {1.0, ...};//设置默认值(创建CFG也使用这个).
 ConVar g_hShootSpeed[sizeof(g_sWeaponShoot)] = {null, ...};
 
 public Plugin myinfo =  
@@ -90,14 +90,15 @@ public Plugin myinfo =
 
 public void OnPluginStart()
 {
-	char g_Temp[2][128];
+	char sTemp[3][128];
 	CreateConVar("l4d2_speed_shoot_Version", PLUGIN_VERSION, "设置枪械射击速度插件的版本.", CVAR_FLAGS|FCVAR_SPONLY|FCVAR_REPLICATED);
 	
 	for (int i = 0; i < sizeof(g_sWeaponShoot); i++)
 	{
-		Format(g_Temp[0], sizeof(g_Temp[]), "l4d2_speed_shoot_%s", g_sWeaponShoot[i][1]);
-		Format(g_Temp[1], sizeof(g_Temp[]), "设置枪械%s的射击速度(默认/最低:1.0).", g_sWeaponShoot[i][0]);
-		g_hShootSpeed[i] = CreateConVar(g_Temp[0],"1.0", g_Temp[1], CVAR_FLAGS);
+		Format(sTemp[0], sizeof(sTemp[]), "l4d2_speed_shoot_%s", g_sWeaponShoot[i][1]);
+		Format(sTemp[1], sizeof(sTemp[]), "设置枪械%s的射击速度(默认/最低:1.0).", g_sWeaponShoot[i][0]);
+		FloatToString(g_fShootSpeed[i], sTemp[2], sizeof(sTemp[]));
+		g_hShootSpeed[i] = CreateConVar(sTemp[0], sTemp[2], sTemp[1], CVAR_FLAGS);
 	}
 	for (int i = 0; i < sizeof(g_sWeaponShoot); i++)
 		g_hShootSpeed[i].AddChangeHook(SpeedConVarChanged);

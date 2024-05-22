@@ -183,7 +183,7 @@ void DisplaySLMenu(int client, int index, bool bButton = false)
 	{
 		IntToString(i, sLine, sizeof(sLine));
 		int iMax = strlen(sNumber) - strlen(sLine);
-		FormatEx(sInfo, sizeof(sInfo), "%s%s人", IsWritesData(iMax, "  "), sLine);
+		FormatEx(sInfo, sizeof(sInfo), "%s%s人", IsWritesData(iMax, "0"), sLine);
 		menu.AddItem(sLine, sInfo);
 		i++;
 	}

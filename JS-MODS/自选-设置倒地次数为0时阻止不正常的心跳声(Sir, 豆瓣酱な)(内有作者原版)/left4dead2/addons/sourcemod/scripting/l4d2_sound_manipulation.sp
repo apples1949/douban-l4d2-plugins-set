@@ -3,8 +3,8 @@
 #include <sourcemod>
 #include <sdktools>
 
-ConVar g_hMaxReviveCount, g_hSoundFlags;
-int g_iMaxReviveCount, g_iSoundHeartFlags, g_iSoundThumpFlags, g_iSoundInjuryFlags;
+int    g_iMaxReviveCount, g_iSoundHeartFlags, g_iSoundThumpFlags, g_iSoundInjuryFlags;
+ConVar g_hMaxReviveCount, g_hSoundHeartFlags, g_hSoundThumpFlags, g_hSoundInjuryFlags;
 
 public Plugin myinfo = 
 {
@@ -22,12 +22,14 @@ public void OnPluginStart()
 	g_hSoundThumpFlags	= CreateConVar("l4d2_sound_vehicle_impact_heavy_flags", "1", "阻止幸存者死亡时的重击声音. 0=禁用, 1=启用.");
 	g_hSoundInjuryFlags	= CreateConVar("l4d2_sound_incapacitatedinjury_flags", "1", "阻止幸存者死亡后播放的音乐. 0=禁用, 1=启用.");
 
-	hMaxReviveCount.AddChangeHook(FlagsChanged);
-	cvarSoundFlags.AddChangeHook(FlagsChanged);
+	g_hMaxReviveCount.AddChangeHook(FlagsChanged);
+	g_hSoundHeartFlags.AddChangeHook(FlagsChanged);
+	g_hSoundThumpFlags.AddChangeHook(FlagsChanged);
+	g_hSoundInjuryFlags.AddChangeHook(FlagsChanged);
 
 	AutoExecConfig(true, "l4d2_sound_manipulation");
 	
-	AddNormalSoundHook(SoundHook);
+	AddNormalSoundHook(IsSoundHook);
 }
 
 public void OnConfigsExecuted()
@@ -48,22 +50,19 @@ void cvarSoundFlagsConfigs()
 	g_iSoundInjuryFlags = g_hSoundInjuryFlags.IntValue;
 }
 
-public Action SoundHook(int clients[MAXPLAYERS], int &numClients, char sample[PLATFORM_MAX_PATH],int &entity, int &channel, float &volume, int &level, int &pitch, int &flags,char soundEntry[PLATFORM_MAX_PATH], int &seed)
+public Action IsSoundHook(int clients[MAXPLAYERS], int &numClients, char sample[PLATFORM_MAX_PATH],int &entity, int &channel, float &volume, int &level, int &pitch, int &flags,char soundEntry[PLATFORM_MAX_PATH], int &seed)
 {
-	if (g_iSoundFlags <= 0)
-		return Plugin_Continue;
-
-	if (g_iMaxReviveCount == 1 && g_iMaxReviveCount <= 0)
+	if (g_iSoundHeartFlags == 1 && g_iMaxReviveCount <= 0)
 	{
 		if (StrEqual(sample, "player/heartbeatloop.wav", false))//阻止心跳声.
 			return Plugin_Stop;
 	}
-	if (g_iMaxReviveCount == 1)
+	if (g_iSoundThumpFlags == 1)
 	{
 		if (StrContains(sample, "vehicle_impact_heavy") != -1)//阻止重击声音.
 			return Plugin_Stop;
 	}
-	if (g_iMaxReviveCount == 1)
+	if (g_iSoundInjuryFlags == 1)
 	{
 		if (StrContains(sample, "incapacitatedinjury", false) != -1)//阻止死亡后的声音.
 			return Plugin_Stop;

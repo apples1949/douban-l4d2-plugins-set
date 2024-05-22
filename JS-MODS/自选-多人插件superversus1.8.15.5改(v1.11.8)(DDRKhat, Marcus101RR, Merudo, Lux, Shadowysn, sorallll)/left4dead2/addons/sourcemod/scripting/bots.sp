@@ -347,6 +347,7 @@ public void OnPluginStart() {
 	RegConsoleCmd("sm_join",			cmdJoinTeam2,	"加入生还者");
 	RegConsoleCmd("sm_tkbot",			cmdTakeOverBot,	"接管指定BOT");
 
+	RegAdminCmd("sm_away",				cmdJoinTeam1,	ADMFLAG_ROOT,	"加入旁观者");
 	RegAdminCmd("sm_spec",				cmdJoinTeam1,	ADMFLAG_ROOT,	"加入旁观者");
 	RegAdminCmd("sm_bot",				cmdBotSet,		ADMFLAG_ROOT,	"设置开局Bot的数量");
 

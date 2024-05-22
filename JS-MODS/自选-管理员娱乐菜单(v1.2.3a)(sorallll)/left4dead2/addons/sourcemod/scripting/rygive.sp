@@ -1232,12 +1232,12 @@ void TeleportToSurvivor(int client) {
 		GetClientAbsOrigin(target, vPos);
 		TeleportEntity(client, vPos, NULL_VECTOR, NULL_VECTOR);
 	}
-
-	char buffer[64];
-	g_aMeleeScripts.GetString(GetRandomInt(0, g_aMeleeScripts.Length - 1), buffer, sizeof buffer);
-	Format(buffer, sizeof buffer, "give %s", buffer);
-	CheatCommand(client, buffer);
-	CheatCommand(client, "give smg");
+	//给予主武器和副武器.
+	//char buffer[64];
+	//g_aMeleeScripts.GetString(GetRandomInt(0, g_aMeleeScripts.Length - 1), buffer, sizeof buffer);
+	//Format(buffer, sizeof buffer, "give %s", buffer);
+	//CheatCommand(client, buffer);//副武器.
+	//CheatCommand(client, "give smg");//主武器.
 }
 
 void SetFriendlyFire(int client) {
