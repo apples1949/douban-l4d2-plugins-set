@@ -1,3 +1,10 @@
+/*
+ *
+ *	1:野生作者小改,闲置的玩家也能看到传送或处死倒计时等提示和听到倒计时声音了.
+ *
+ *
+ */
+
 #pragma semicolon 1
 #pragma newdecls required
 #include <sourcemod>
@@ -716,13 +723,33 @@ Action tmrCountdown(Handle timer) {
 	return Plugin_Continue;
 }
 
-void PrintHintToSurvivor(const char[] format, any ...) {
+void PrintHintToSurvivor(const char[] format, any ...) 
+{
 	static char buffer[254];
-	for (int i = 1; i <= MaxClients; i++) {
-		if (IsClientInGame(i) && !IsFakeClient(i) && GetClientTeam(i) == 2) {
-			SetGlobalTransTarget(i);
-			VFormat(buffer, sizeof buffer, format, 2);
-			PrintHintText(i, "%s", buffer);
+	for (int i = 1; i <= MaxClients; i++) 
+	{
+		if (IsClientInGame(i) && GetClientTeam(i) == 2) 
+		{
+			int iBot = IsClientIdle(i);
+		
+			if(iBot != 0)
+			{
+				if(!IsFakeClient(iBot))
+				{
+					SetGlobalTransTarget(iBot);
+					VFormat(buffer, sizeof buffer, format, 2);
+					PrintHintText(iBot, "%s", buffer);
+				}
+			}
+			else
+			{
+				if(!IsFakeClient(i))
+				{
+					SetGlobalTransTarget(i);
+					VFormat(buffer, sizeof buffer, format, 2);
+					PrintHintText(i, "%s", buffer);
+				}
+			}
 		}
 	}
 }
@@ -885,9 +912,27 @@ void EmitSoundToSurvivor(const char[] sample,
 {
 	int[] clients = new int[MaxClients];
 	int total;
-	for (int i = 1; i <= MaxClients; i++) {
-		if (IsClientInGame(i) && !IsFakeClient(i) && GetClientTeam(i) == 2)
-			clients[total++] = i;
+	for (int i = 1; i <= MaxClients; i++) 
+	{
+		if (IsClientInGame(i) && GetClientTeam(i) == 2)
+		{
+			int iBot = IsClientIdle(i);
+		
+			if(iBot != 0)
+			{
+				if(!IsFakeClient(iBot))
+				{
+					clients[total++] = iBot;
+				}
+			}
+			else
+			{
+				if(!IsFakeClient(i))
+				{
+					clients[total++] = i;
+				}
+			}
+		}
 	}
 
 	if (total) {
@@ -995,4 +1040,13 @@ bool IsPlayerInEndArea(int client, bool checkArea = true) {
 		return IsValidEntRef(g_iRescueVehicle) && SDKCall(g_hSDK_CBaseTrigger_IsTouching, g_iRescueVehicle, client);
 	
 	return IsValidEntRef(g_iChangelevel) && SDKCall(g_hSDK_CBaseTrigger_IsTouching, g_iChangelevel, client);
+}
+
+//返回电脑幸存者对应的玩家.
+stock int IsClientIdle(int client)
+{
+	if (!HasEntProp(client, Prop_Send, "m_humanSpectatorUserID"))
+		return 0;
+
+	return GetClientOfUserId(GetEntProp(client, Prop_Send, "m_humanSpectatorUserID"));
 }

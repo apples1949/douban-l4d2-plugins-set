@@ -267,7 +267,7 @@ public void OnPluginEnd() {
 public void OnClientDisconnect(int client) {
 	g_fSpeedUp[client] = 1.0;
 	g_bGodMode[client] = false;
-	g_bIgnoreAbility[client] = false;
+	//g_bIgnoreAbility[client] = false;
 }
 
 public void OnClientPutInServer(int client) {

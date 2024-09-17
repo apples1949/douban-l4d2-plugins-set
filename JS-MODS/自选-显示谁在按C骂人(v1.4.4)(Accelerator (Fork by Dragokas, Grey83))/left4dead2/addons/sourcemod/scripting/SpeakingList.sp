@@ -64,7 +64,11 @@ Action tmrUpdateList(Handle timer) {
 		g_bSpeaking[i] = false;
 		if (!IsClientInGame(i))
 			continue;
-
+		QueryClientConVar(i, "voice_vox", OnQueryFinished);
+		
+		if (GetClientListeningFlags(i) == VOICE_MUTED)
+			continue;
+			
 		if (BaseComm_IsClientMuted(i))
 			continue;
 
@@ -78,4 +82,24 @@ Action tmrUpdateList(Handle timer) {
 		PrintCenterTextAll("语音中:%s", g_sSpeaking);
 
 	return Plugin_Continue;
+}
+void OnQueryFinished(QueryCookie cookie, int client, ConVarQueryResult result, const char[] cvarName, const char[] cvarValue)
+{
+	if (result == ConVarQuery_Okay)
+	{
+		if (StringToInt(cvarValue) != 0)
+		{
+			if (GetClientListeningFlags(client) != VOICE_MUTED)
+			{
+				SetClientListeningFlags(client, VOICE_MUTED);
+				PrintToChat(client, "\x04[提示]\x05服务器自动静音使用\x04开放式麦克风\x05的玩家,更改为\x03按键通话\x05自动解除静音.");
+			}
+		}
+		else 
+		if (GetClientListeningFlags(client) != VOICE_NORMAL)
+		{
+			SetClientListeningFlags(client, VOICE_NORMAL);
+			PrintToChat(client, "\x04[提示]\x05检测你是\x04按键通话\x05已解除静音.");
+		}
+	}
 }
