@@ -1,6 +1,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 #include <sourcemod>
+#include <adminmenu>
 #include <dhooks>
 
 #define PLUGIN_NAME				"bots(coop)"
@@ -19,6 +20,9 @@
 #define JOIN_MANUAL				(1 << 0)
 #define JOIN_AUTOMATIC			(1 << 1)
 #define SOUND_SPECMENU			"ui/helpful_event_1.wav"
+
+TopMenu g_hTopMenu;
+TopMenuObject hOtherFeatures = INVALID_TOPMENUOBJECT;
 
 Handle
 	g_hBotsTimer,
@@ -297,6 +301,10 @@ public void OnPluginStart() {
 	InitData();
 	g_smSteamIDs = new StringMap();
 	g_aMeleeScripts = new ArrayList(ByteCountToCells(64));
+
+	TopMenu topmenu;
+	if (LibraryExists("adminmenu") && ((topmenu = GetAdminTopMenu()) != null))
+		OnAdminMenuReady(topmenu);
 
 	AddCommandListener(Listener_spec_next, "spec_next");
 	HookUserMessage(GetUserMessageId("SayText2"), umSayText2, true);
@@ -633,30 +641,153 @@ Action cmdJoinTeam1(int client, int args) {
 	return Plugin_Handled;
 }
 
-Action cmdBotSet(int client, int args) {
-	if (!g_bRoundStart) {
-		ReplyToCommand(client, "回合尚未开始.");
-		return Plugin_Handled;
-	}
+public void OnLibraryRemoved(const char[] name)
+{
+	if (StrEqual(name, "adminmenu"))
+		g_hTopMenu = null;
+}
+ 
+public void OnAdminMenuReady(Handle aTopMenu)
+{
+	TopMenu topmenu = TopMenu.FromHandle(aTopMenu);
 
-	if (args != 1) {
-		ReplyToCommand(client, "\x01!bot/sm_bot <\x05数量\x01>.");
-		return Plugin_Handled;
-	}
+	if (topmenu == g_hTopMenu)
+		return;
+	
+	g_hTopMenu = topmenu;
+	
+	TopMenuObject hTopMenuObject = FindTopMenuCategory(g_hTopMenu, "OtherFeatures");
+	if (hTopMenuObject == INVALID_TOPMENUOBJECT)
+		hTopMenuObject = AddToTopMenu(g_hTopMenu, "OtherFeatures", TopMenuObject_Category, hMenuHandler, INVALID_TOPMENUOBJECT);
+	
+	hOtherFeatures = AddToTopMenu(g_hTopMenu,"sm_bot",TopMenuObject_Item, hHandlerMenu, hTopMenuObject,"sm_bot",ADMFLAG_ROOT);
+}
 
-	int arg = GetCmdArgInt(1);
-	if (arg < 1 || arg > MaxClients - 1) {
-		ReplyToCommand(client, "\x01参数范围 \x051\x01~\x05%d\x01.", MaxClients - 1);
-		return Plugin_Handled;
+void hMenuHandler(Handle topmenu, TopMenuAction action, TopMenuObject object_id, int param, char[] buffer, int maxlength)
+{
+	if (action == TopMenuAction_DisplayTitle)
+	{
+		Format(buffer, maxlength, "选择功能:", param);
 	}
+	else if (action == TopMenuAction_DisplayOption)
+	{
+		Format(buffer, maxlength, "其它功能", param);
+	}
+}
 
-	delete g_hBotsTimer;
-	g_cBotLimit.IntValue = arg;
-	g_hBotsTimer = CreateTimer(1.0, tmrBotsUpdate);
-	ReplyToCommand(client, "\x05开局BOT数量已设置为 \x04%d\x01.", arg);
+void hHandlerMenu(Handle topmenu, TopMenuAction action, TopMenuObject object_id, int param, char[] buffer, int maxlength)
+{
+	if (action == TopMenuAction_DisplayOption)
+	{
+		if (object_id == hOtherFeatures)
+			Format(buffer, maxlength, "电脑数量", param);
+	}
+	else if (action == TopMenuAction_SelectOption)
+	{
+		if (object_id == hOtherFeatures)
+		{
+			IsBotSet(param, 0, true);
+		}
+	}
+}
+Action cmdBotSet(int client, int args) 
+{
+	IsBotSet(client, args, false);
 	return Plugin_Handled;
 }
 
+void IsBotSet(int client, int args, bool bFunction)
+{
+	if (!g_bRoundStart) 
+	{
+		ReplyToCommand(client, "回合尚未开始.");
+		return;
+	}
+	switch(args)
+	{
+		case 0:
+			IsBotMenuSet(client, 0, bFunction);
+		case 1:
+		{
+			int arg = GetCmdArgInt(1);
+			if (arg < 1 || arg > MaxClients - 1) 
+			{
+				ReplyToCommand(client, "\x04[提示]\x01参数范围 \x051\x01~\x05%d\x01.", MaxClients - 1);
+			}
+			else
+				IsSetBotNumber(client, arg);
+		}
+	}
+}
+void IsBotMenuSet(int client, int index, bool bFunction)
+{
+	char sData[2][32], sInfo[2][32], sNumber[32];
+	Menu menu = new Menu(MenuBotSetHandler);
+	menu.SetTitle("设置数量:");
+	
+	int i = 1;
+	int iNumber = MaxClients;
+	IntToString(iNumber, sNumber, sizeof(sNumber));
+	while (i <= iNumber)
+	{
+		IntToString(i, sData[0], sizeof(sData[]));
+		IntToString(bFunction, sData[1], sizeof(sData[]));
+		ImplodeStrings(sData, sizeof(sData), "|", sInfo[0], sizeof(sInfo[]));//打包字符串.
+		int iMax = strlen(sNumber) - strlen(sData[0]);
+		FormatEx(sInfo[1], sizeof(sInfo[]), "%s%s", IsWritesData(iMax, "0"), sData[0]);
+		menu.AddItem(sInfo[0], sInfo[1]);
+		i++;
+	}
+	menu.ExitButton = true;//默认值:true,设置为:false,则不显示退出选项.
+	menu.ExitBackButton = bFunction;//菜单首页显示数字8返回上一页选项.
+	menu.DisplayAt(client, index, MENU_TIME_FOREVER);
+}
+int MenuBotSetHandler(Menu menu, MenuAction action, int client, int itemNum)
+{
+	switch(action)
+	{
+		case MenuAction_Select:
+		{
+			char sItem[32], sData[2][32];
+			menu.GetItem(itemNum, sItem, sizeof(sItem));
+			ExplodeString(sItem, "|", sData, sizeof(sData), sizeof(sData[]));//拆分字符串.
+			IsSetBotNumber(client, StringToInt(sData[0]));
+			IsBotMenuSet(client, menu.Selection, view_as<bool>(StringToInt(sData[1])));
+			
+		}
+		//按下数字8时返回上一层.
+		case MenuAction_Cancel:
+		{
+			if (itemNum == MenuCancel_ExitBack && g_hTopMenu != null)
+				g_hTopMenu.Display(client, TopMenuPosition_LastCategory);
+		}
+		case MenuAction_End:
+			delete menu;
+	}
+	return 0;
+}
+//填入对应数量的内容.
+stock char[] IsWritesData(int iNumber, char[] sValue)
+{
+	char sInfo[128];
+	if(iNumber > 0)
+	{
+		int iLength = strlen(sValue) + 1;
+		char[][] sData = new char[iNumber][iLength];//动态数组.
+		for (int i = 0; i < iNumber; i++)
+			strcopy(sData[i], iLength, sValue);
+		ImplodeStrings(sData, iNumber, "", sInfo, sizeof(sInfo));//打包字符串.
+	}
+	return sInfo;
+}
+//设置电脑生还者数量.
+void IsSetBotNumber(int client, int arg)
+{
+	delete g_hBotsTimer;
+	g_cBotLimit.IntValue = arg;
+	g_hBotsTimer = CreateTimer(1.0, tmrBotsUpdate);
+	ReplyToCommand(client, "\x04[提示]\x05电脑生还者开局数量已设置为\x04%d\x01.", arg);
+}
 Action Listener_spec_next(int client, char[] command, int argc) {
 	if (!g_bRoundStart)
 		return Plugin_Continue;

@@ -148,7 +148,7 @@ void IsFriedSuitMenu(int client, bool bButton = false)
 		char line[32], sButton[32];
 		IntToString(bButton, sButton, sizeof(sButton));
 		Menu menu = new Menu(Menu_HandlerFriedSuitMenu);
-		Format(line, sizeof(line), "%s炸服?", g_hPlayerTimer == null ? "确认" : "取消");
+		Format(line, sizeof(line), "(%s)炸服?\n ", g_hPlayerTimer == null ? "确认" : "关闭");
 		SetMenuTitle(menu, "%s", line);
 		menu.AddItem(sButton, "确认");
 		menu.ExitButton = true;//默认值:true,设置为:false,则不显示退出选项.
