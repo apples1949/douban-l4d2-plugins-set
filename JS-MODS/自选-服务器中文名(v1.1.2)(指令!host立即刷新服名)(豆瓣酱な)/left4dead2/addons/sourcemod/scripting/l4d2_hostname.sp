@@ -5,6 +5,7 @@
 
 #define PLUGIN_VERSION	"1.1.2"
 
+ConVar g_hHostName;
 char g_sPath[PLATFORM_MAX_PATH], g_sFileLine[PLATFORM_MAX_PATH];
 
 public Plugin myinfo = 
@@ -18,37 +19,38 @@ public Plugin myinfo =
 
 public void OnPluginStart()
 {
+	RegConsoleCmd("sm_host", Addhostname, "重载服名或设置新服名");
+	g_hHostName = FindConVar("hostname");
 	IsGetSetHostName();//获取文件里的内容.
 }
 
-//玩家连接成功.
-public void OnClientPostAdminCheck(int client)
-{
-	if (!IsFakeClient(client))
-	{
-		CreateTimer(1.0, IsDelayOpeningMenu, GetClientUserId(client), TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
-		
-	}
-}
-//计时器回调.
-public Action IsDelayOpeningMenu(Handle timer, any client)
-{
-	if ((client = GetClientOfUserId(client)) && IsValidClient(client))
-	{
-		IsDisplayContent(client, "{green}[提示]{blue}欢迎加入此服务器.");
-	}
-	return Plugin_Stop;
-}
-stock void IsDisplayContent(int client, const char[] format, any ...)
-{
-	char buffer[254];
-	VFormat(buffer, sizeof(buffer), format, 3);
-	C_PrintToChat(client, "%s", buffer);
-}
 public void OnConfigsExecuted()
 {
 	IsGetSetHostName();//获取文件里的内容.
 }
+
+public Action Addhostname(int client, int args)
+{
+	if(IsCheckClientAccess(client))
+	{
+		if(args == 0)
+		{
+			IsGetSetHostName();//获取文件里的内容.
+			PrintToChat(client, "\x04[提示]\x05已重新加载配置文件(使用指令!host空格+内容设置新服名).");
+		}
+		else
+		{
+			char arg[64];
+			GetCmdArgString(arg, sizeof(arg));
+			IsWriteServerName(arg);//写入内容到文件里.
+			PrintToChat(client, "\x04[提示]\x05已设置新服名为\x04:\x05(\x03%s\x05)\x04.", arg);
+		}
+	}
+	else
+		PrintToChat(client, "\x04[提示]\x05只限管理员使用该指令.");
+	return Plugin_Handled;
+}
+
 //获取文件里的服名.
 void IsGetSetHostName()
 {
@@ -56,7 +58,7 @@ void IsGetSetHostName()
 	if(FileExists(g_sPath))//判断文件是否存在.
 		IsSetSetHostName();//文件已存在,获取文件里的内容.
 	else
-		IsWriteServerName("{green}[提示]{blue}欢迎加入此服务器.");//文件不存在,创建文件并写入默认内容.
+		IsWriteServerName("猜猜这个是谁的萌新服?");//文件不存在,创建文件并写入默认内容.
 }
 
 //获取文件里的内容.
