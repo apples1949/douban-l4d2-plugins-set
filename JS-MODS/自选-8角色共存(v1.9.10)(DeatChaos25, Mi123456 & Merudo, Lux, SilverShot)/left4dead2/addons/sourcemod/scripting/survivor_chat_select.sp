@@ -146,7 +146,7 @@ public void OnPluginStart() {
 	RegConsoleCmd("sm_bill",		cmdBillUse,		"Changes your survivor character into Bill");
 	RegConsoleCmd("sm_francis",		cmdBikerUse,	"Changes your survivor character into Francis");
 	RegConsoleCmd("sm_louis",		cmdLouisUse,	"Changes your survivor character into Louis");
-
+/*
 	RegConsoleCmd("sm_z",			cmdZoeyUse,		"Changes your survivor character into Zoey");
 	RegConsoleCmd("sm_n",			cmdNickUse,		"Changes your survivor character into Nick");
 	RegConsoleCmd("sm_e",			cmdEllisUse,	"Changes your survivor character into Ellis");
@@ -155,7 +155,7 @@ public void OnPluginStart() {
 	RegConsoleCmd("sm_b",			cmdBillUse,		"Changes your survivor character into Bill");
 	RegConsoleCmd("sm_f",			cmdBikerUse,	"Changes your survivor character into Francis");
 	RegConsoleCmd("sm_l",			cmdLouisUse,	"Changes your survivor character into Louis");
-
+*/
 	RegConsoleCmd("sm_csm",			cmdCsm,			"Brings up a menu to select a client's character");
 
 	RegAdminCmd("sm_csc",			cmdCsc,			ADMFLAG_ROOT, "Brings up a menu to select a client's character");

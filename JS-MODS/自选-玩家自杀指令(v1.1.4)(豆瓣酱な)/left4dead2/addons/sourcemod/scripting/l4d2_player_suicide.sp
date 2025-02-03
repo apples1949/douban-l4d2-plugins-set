@@ -22,8 +22,11 @@
 
 bool g_bPointsFall;
 
-int    g_iSurvivor, g_iInfected, g_iShowTips;
-ConVar g_hSurvivor, g_hInfected, g_hShowTips;
+int    g_iSurvivor, g_iInfected;
+ConVar g_hSurvivor, g_hInfected;
+
+float  g_fShowTips;
+ConVar g_hShowTips;
 
 public Plugin myinfo =  
 {
@@ -58,7 +61,7 @@ public void OnPluginStart()
 	
 	g_hSurvivor	= CreateConVar("l4d2_survivor_suicide",		"1", "启用生还者自杀功能. 0=禁用, 1=只限倒地或挂边, 2=无条件使用.");
 	g_hInfected	= CreateConVar("l4d2_infected_suicide",		"1", "启用感染者自杀功能. 0=禁用, 1=只限非灵魂状态, 2=无条件使用.");
-	g_hShowTips	= CreateConVar("l4d2_command_hint",			"7", "设置开局提示自杀指令的延迟显示时间/秒. 0=禁用.");
+	g_hShowTips	= CreateConVar("l4d2_command_hint_time",	"8.5", "设置开局提示自杀指令的延迟显示时间/秒. 0=禁用.");
 	g_hSurvivor.AddChangeHook(IsSuicideConVarChanged);
 	g_hInfected.AddChangeHook(IsSuicideConVarChanged);
 	g_hShowTips.AddChangeHook(IsSuicideConVarChanged);
@@ -76,7 +79,7 @@ void IsConVarSuicide()
 {
 	g_iSurvivor = g_hSurvivor.IntValue;
 	g_iInfected = g_hInfected.IntValue;
-	g_iShowTips = g_hShowTips.IntValue;
+	g_fShowTips = g_hShowTips.FloatValue;
 }
 //聊天窗中文指令.
 public Action OnClientSayCommand(int client, const char[] commnad, const char[] args)
@@ -91,8 +94,8 @@ public Action OnClientSayCommand(int client, const char[] commnad, const char[] 
 //玩家连接成功.
 public void OnClientPostAdminCheck(int client)
 {
-	if (!IsFakeClient(client) && g_iShowTips > 0)
-		CreateTimer(float(g_iShowTips), IsShowTipsTimer, GetClientUserId(client), TIMER_FLAG_NO_MAPCHANGE);
+	if (!IsFakeClient(client) && g_fShowTips > 0)
+		CreateTimer(g_fShowTips, IsShowTipsTimer, GetClientUserId(client), TIMER_FLAG_NO_MAPCHANGE);
 }
 //计时器回调.
 public Action IsShowTipsTimer(Handle timer, any client)

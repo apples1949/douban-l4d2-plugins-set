@@ -185,7 +185,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 	int attacker = GetClientOfUserId(event.GetInt("attacker"));
 	bool headshot = GetEventBool(event, "headshot");
 	
-	if (g_iBroadcast > 0 && IsValidClient(attacker) && client != attacker)
+	if (g_iBroadcast > 0 && IsValidClient(attacker) && !IsFakeClient(attacker) && client != attacker)
 		IsPrintkillinfo(attacker, headshot);
 }
 //击杀或爆头计数.
@@ -248,6 +248,15 @@ public void OnClientDisconnect(int client)
 		g_iHeadCounts[client] = 0;
 		delete g_hKillTimer[client];
 		delete g_hHeadTimer[client];
+	}
+}
+//地图结束.
+public void OnMapEnd()
+{
+	for (int i = 1; i <= MaxClients; i++) 
+	{
+		delete g_hKillTimer[i];
+		delete g_hHeadTimer[i];
 	}
 }
 //玩家有效.

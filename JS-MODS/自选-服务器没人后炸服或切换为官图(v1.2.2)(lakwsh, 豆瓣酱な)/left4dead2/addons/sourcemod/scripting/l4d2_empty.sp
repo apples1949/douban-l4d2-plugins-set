@@ -277,7 +277,7 @@ public MRESReturn OnHibernationUpdate(DHookParam hParams)
 		}
 		case 2:
 		{
-			g_hGamemode.SetString(g_sEmptyMode);
+			g_hGamemode.SetString(g_sEmptyMode);//设置为指定的模式.
 			ForceChangeLevel(g_sEmptyCode, "自动更换为指定的地图.");
 		}
 	}

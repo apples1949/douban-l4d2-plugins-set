@@ -680,7 +680,7 @@ void hHandlerMenu(Handle topmenu, TopMenuAction action, TopMenuObject object_id,
 	if (action == TopMenuAction_DisplayOption)
 	{
 		if (object_id == hOtherFeatures)
-			Format(buffer, maxlength, "电脑数量", param);
+			Format(buffer, maxlength, "生还数量", param);
 	}
 	else if (action == TopMenuAction_SelectOption)
 	{
