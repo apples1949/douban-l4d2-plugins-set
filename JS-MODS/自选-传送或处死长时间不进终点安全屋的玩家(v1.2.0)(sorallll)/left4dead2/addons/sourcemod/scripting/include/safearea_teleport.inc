@@ -20,6 +20,24 @@ public void __pl_l4d2_DropMoney_SetNTVOptional()
 #endif
 
 /**
+ * 玩家离开终点区域时.
+ *
+ * @param client          玩家索引.
+ *
+ * @noreturn
+ */
+//forward void OnSafeareaEnd(int client);
+
+/**
+ * 玩家进入终点区域时.
+ *
+ * @param client          玩家索引.
+ *
+ * @noreturn
+ */
+//forward void OnSafeareaStart(int client);
+
+/**
  * 启动终点处死或传送倒计时时调用.
  *
  * @noreturn

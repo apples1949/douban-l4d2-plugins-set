@@ -63,7 +63,7 @@ void IsChangeDifficule(int client, int value)
 {
 	char sName[32], error[128];
 	if(SetCustomizeDifficulty(client, value, sName, error))
-		PrintToChat(client, "\x04[提示]\x05已设置你的难度为\x03%s\x05难度.", sName);
+		PrintToChat(client, "\x04[提示]\x05已设置你的难度为\x03%s\x05难度,其它命令(默认,简单,普通,高级,专家).", sName);
 	else
 		PrintToChat(client, "\x04[提示]\x05%s.", error);
 }
