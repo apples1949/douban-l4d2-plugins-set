@@ -241,20 +241,14 @@ stock void IsReadFileValues()
 stock void SQL_LoadAll() 
 {
 	for (int i = 1; i <= MaxClients; i++) 
-	{
 		if (IsClientInGame(i) && !IsFakeClient(i)) 
-		{
 			SQL_Load(i, false);//读取玩家数据.
-		}
-	}
 }
 //玩家完全加入游戏时.
 public void OnClientPostAdminCheck(int client)
 {
 	if(!IsFakeClient(client) && g_bDatabaseInitial[client] == true)
-	{
 		g_hDifficulty.ReplicateToClient(client, g_iDamageMultiple[client] == -1 ? GetGameDifficultyName() : g_sDifficultyCode[g_iDamageMultiple[client]]);
-	}
 }
 //玩家加入游戏时.
 public void OnClientAuthorized(int client, const char[] auth)

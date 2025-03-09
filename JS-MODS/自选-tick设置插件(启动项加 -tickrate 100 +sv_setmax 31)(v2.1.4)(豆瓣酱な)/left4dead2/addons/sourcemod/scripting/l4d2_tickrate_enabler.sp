@@ -118,7 +118,7 @@ void SetServerCvarValues(int iMaxTick, int iMaxFps, int iMinRatio, int iMaxRatio
 	
 	if (iMaxTick > 30)//设置的tick大于30,所以这里验证下设置tick成功没有
 	{
-		//这里使用下一帧写入管理员.
+		//这里使用下一帧重新设置.
 		DataPack hPack = new DataPack();
 		hPack.WriteCell(iMaxTick);
 		hPack.WriteCell(iMaxFps);

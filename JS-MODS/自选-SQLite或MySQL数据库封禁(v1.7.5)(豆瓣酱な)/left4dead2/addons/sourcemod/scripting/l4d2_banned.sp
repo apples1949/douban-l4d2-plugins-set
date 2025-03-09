@@ -155,12 +155,6 @@ void IsReadFileValues()
 	}
 	delete kv;//删除句柄.
 }
-//地图开始时.
-public void OnMapStart()
-{
-	IsReadFileValues();
-	ServerCommand("exec banned_user.cfg");//加载服务器封禁列表.
-}
 //所有插件加载完成后执行一次(延迟加载插件也会执行一次).
 public void OnAllPluginsLoaded()   
 {
@@ -227,6 +221,13 @@ stock void SQL_LoadAll()
 		}
 	}
 }
+//地图开始.
+public void OnMapStart()
+{
+	IsReadFileValues();
+	ServerCommand("exec banned_user.cfg");//加载服务器封禁列表.
+	//PrintToServer("[地图开始](%f)(%d).", GetEngineTime(), g_bAllAllowReadingData);
+}
 //玩家连接游戏并完全进入游戏时.
 public void OnClientPostAdminCheck(int client)
 {
@@ -245,9 +246,12 @@ public void OnClientAuthorized(int client, const char[] auth)
 {
 	if (!IsFakeClient(client))
 	{
+		char sAuth[MAX_LENGTH];
 		g_eBanned[client].g_bBanStatus = false;
-		if (!StrEqual(auth, "STEAM_ID_STOP_IGNORING_RETVALS", false))
+		if (GetClientAuthId(client, AuthId_Steam2, sAuth, sizeof(sAuth)))
+		{
 			SQL_Load(0, auth, "", false);//读取玩家数据.
+		}
 		else
 			KickClient(client, "你已被踢出.\n踢出原因:ID获取失败.\n你的ID为:%s.", auth);//执行踢出玩家并显示原因.
 	}

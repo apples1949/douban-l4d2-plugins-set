@@ -77,7 +77,7 @@ public void OnPluginStart()
 	
 	g_hBroadcast = CreateConVar("l4d2_broadcast_player_death", "3", "击杀或爆头提示? 0=禁用, 1=击杀时, 2=爆头时, 3=全部.", FCVAR_NOTIFY);
 	g_hPlayerHurt = CreateConVar("l4d2_broadcast_player_hurt", "1", "幸存者黑枪提示? 0=禁用, 1=启用.", FCVAR_NOTIFY);
-	g_hTakeDamage = CreateConVar("l4d2_broadcast_take_damage", "15", "幸存者友伤功能? 0=禁用, 1=队伤(玩家火和爆炸伤害也是队伤范围), 2=火伤(只限地图火或间接火), 4=爆炸类(只限非玩家引爆)(土制炸弹,煤气罐,氧气罐), 8=榴弹发射器(闲置榴弹), 15=全部.", FCVAR_NOTIFY);
+	g_hTakeDamage = CreateConVar("l4d2_broadcast_take_damage", "15", "关闭幸存者友伤功能? 0=启用, 1=队伤(玩家火和爆炸伤害也是队伤范围), 2=火伤(只限地图火或间接火), 4=爆炸类(只限非玩家引爆)(土制炸弹,煤气罐,氧气罐), 8=榴弹发射器(闲置榴弹), 15=全部.", FCVAR_NOTIFY);
 	g_hBroadcast.AddChangeHook(ConVarChanged);
 	g_hPlayerHurt.AddChangeHook(ConVarChanged);
 	g_hTakeDamage.AddChangeHook(ConVarChanged);
