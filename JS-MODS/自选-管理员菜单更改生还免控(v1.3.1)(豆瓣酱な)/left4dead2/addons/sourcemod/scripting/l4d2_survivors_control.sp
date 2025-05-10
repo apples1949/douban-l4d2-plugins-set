@@ -604,17 +604,6 @@ stock bool IsValidClient(int client)
 {
 	return client > 0 && client <= MaxClients && IsClientInGame(client);
 }
-stock char[] GetTrueName(int client)
-{
-	char sName[32];
-	int Bot = IsClientIdle(client);
-	
-	if(Bot != 0)
-		FormatEx(sName, sizeof(sName), "闲置:%N", Bot);
-	else
-		GetClientName(client, sName, sizeof(sName));
-	return sName;
-}
 //返回闲置玩家对应的电脑.
 stock int GetBotOfIdlePlayer(int client)
 {

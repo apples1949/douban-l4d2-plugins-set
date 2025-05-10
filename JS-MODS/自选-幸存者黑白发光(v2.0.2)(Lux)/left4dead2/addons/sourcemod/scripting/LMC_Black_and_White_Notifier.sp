@@ -150,15 +150,18 @@ void IsResetCount(any client)
 					if(iEntity > MaxClients)
 					{
 						ResetGlows(iEntity);
+						//PrintToChat(iEntity, "\x04[提示1]\x05玩家黑白:1.");
 					}
 					else
 					{
 						ResetGlows(client);
+						//PrintToChat(client, "\x04[提示2]\x05玩家黑白:1.");
 					}
 				}
 				else
 				{
 					ResetGlows(client);
+					//PrintToChat(client, "\x04[提示3]\x05玩家黑白:1.");
 				}
 			}
 		}

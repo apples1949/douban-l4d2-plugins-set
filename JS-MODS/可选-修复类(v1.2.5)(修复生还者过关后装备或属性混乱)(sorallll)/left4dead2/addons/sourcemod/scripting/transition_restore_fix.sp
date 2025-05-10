@@ -47,6 +47,17 @@ enum struct PlayerSaveData {
 PlayerSaveData
 	g_eSavedData;
 
+GlobalForward 
+	g_hPluginPlayerSaveDataRestorPre,
+	g_hPluginPlayerSaveDataRestorPost;
+
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max) 
+{
+	g_hPluginPlayerSaveDataRestorPre = new GlobalForward("OnPlayerSaveDataRestoreFix_Pre", ET_Event, Param_Cell, Param_Cell);
+	g_hPluginPlayerSaveDataRestorPost = new GlobalForward("OnPlayerSaveDataRestoreFix_Post", ET_Event, Param_Cell, Param_Cell);
+	return APLRes_Success;
+}
+
 public Plugin myinfo = {
 	name = PLUGIN_NAME,
 	author = PLUGIN_AUTHOR,
@@ -279,6 +290,11 @@ MRESReturn DD_PlayerSaveData_Restore_Pre(Address pThis, DHookParam hParams) {
 	IntToString(m_survivorCharacter, character, sizeof character);
 	SDKCall(g_hSDK_KeyValues_SetString, pData, "character", character);
 
+	Call_StartForward(g_hPluginPlayerSaveDataRestorPre);
+	Call_PushCell(g_pThis);
+	Call_PushCell(player);
+	Call_Finish();
+
 	return MRES_Ignored;
 }
 
@@ -299,6 +315,12 @@ MRESReturn DD_PlayerSaveData_Restore_Post(Address pThis, DHookParam hParams) {
 
 	if (g_pThis)
 		StoreToAddress(g_pThis, g_pData, NumberType_Int32);
+
+	int player = hParams.Get(1);
+	Call_StartForward(g_hPluginPlayerSaveDataRestorPost);
+	Call_PushCell(g_pThis);
+	Call_PushCell(player);
+	Call_Finish();
 
 	g_pThis = Address_Null;
 	g_pData = Address_Null;

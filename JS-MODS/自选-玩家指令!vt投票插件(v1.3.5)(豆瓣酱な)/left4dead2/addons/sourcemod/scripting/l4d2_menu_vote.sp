@@ -23,20 +23,12 @@
 bool g_bLibraries;
 Handle g_hChangelevel;
 
-char g_sName[][] = 
+char g_sGameDifficulty[][][] = 
 {
-	"简单", 
-	"普通", 
-	"高级", 
-	"专家"
-};
-
-char g_sCode[][] = 
-{
-	"Easy", 
-	"Normal", 
-	"Hard", 
-	"Impossible"
+	{"简单", "Easy"}, 
+	{"普通", "Normal"}, 
+	{"高级", "Hard"}/*, 
+	{"专家", "Impossible"}*/
 };
 
 int    g_iBanTime, g_iPercent, g_iMenuTime;
@@ -190,16 +182,16 @@ void MenuVoteChangeDifficulty(int client, char[] g_sItem)
 	Menu menu = new Menu(Menu_HandlerDifficulty);
 	FormatEx(line, sizeof(line), "选择难度:");
 	SetMenuTitle(menu, "%s", line);
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < sizeof(g_sGameDifficulty); i++)
 	{
-		if (strcmp(GetDifficulty(), g_sCode[i]) == 0)//不显示当前难度.
+		if (strcmp(GetDifficulty(), g_sGameDifficulty[i][1]) == 0)//不显示当前难度.
 			continue;
 
 		strcopy(sData[0], sizeof(sData[]), g_sItem);
-		strcopy(sData[1], sizeof(sData[]), g_sCode[i]);
-		strcopy(sData[2], sizeof(sData[]), g_sName[i]);
+		strcopy(sData[1], sizeof(sData[]), g_sGameDifficulty[i][1]);
+		strcopy(sData[2], sizeof(sData[]), g_sGameDifficulty[i][0]);
 		ImplodeStrings(sData, sizeof(sData), "|", sInfo, sizeof(sInfo));//打包字符串.
-		menu.AddItem(sInfo, g_sName[i]);
+		menu.AddItem(sInfo, g_sGameDifficulty[i][0]);
 	}
 	menu.ExitButton = true;//默认值:true,设置为:false,则不显示退出选项.
 	menu.ExitBackButton = true;
@@ -241,11 +233,10 @@ void IsVoteChangeDifficulty(int client, char[] sItem, char[] sName)
 	vote.Initiator = client;
 	vote.SetInfo(sItem);
 
-	int team;
 	int playerCount = 0;
 	int[] clients = new int[MaxClients];
 	for (int i = 1; i <= MaxClients; i++) {
-		if (!IsClientInGame(i) || IsFakeClient(i) || (team = GetClientTeam(i)) < 2 || team > 3)
+		if (!IsClientInGame(i) || IsFakeClient(i))
 			continue;
 
 		vote.SetTitle("更改难度为:%s?", sName);
@@ -285,11 +276,10 @@ void MenuVoteReopenTheChapter(int client, char[] sItem)
 	vote.Initiator = client;
 	vote.SetInfo(sInfo);
 
-	int team;
 	int playerCount = 0;
 	int[] clients = new int[MaxClients];
 	for (int i = 1; i <= MaxClients; i++) {
-		if (!IsClientInGame(i) || IsFakeClient(i) || (team = GetClientTeam(i)) < 2 || team > 3)
+		if (!IsClientInGame(i) || IsFakeClient(i))
 			continue;
 
 		vote.SetTitle("重启当前章节?");
@@ -372,11 +362,10 @@ void IsVoteKickThePlayer(int client, char[] sItem, char[] sName)
 	vote.Initiator = client;
 	vote.SetInfo(sItem);
 
-	int team;
 	int playerCount = 0;
 	int[] clients = new int[MaxClients];
 	for (int i = 1; i <= MaxClients; i++) {
-		if (!IsClientInGame(i) || IsFakeClient(i) || (team = GetClientTeam(i)) < 2 || team > 3)
+		if (!IsClientInGame(i) || IsFakeClient(i))
 			continue;
 
 		vote.SetTitle("踢出玩家:%s?", sName);

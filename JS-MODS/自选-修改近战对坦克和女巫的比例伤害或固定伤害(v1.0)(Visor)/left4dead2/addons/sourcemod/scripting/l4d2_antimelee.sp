@@ -4,9 +4,11 @@
 #include <sdkhooks>
 #include <sdktools>
 
+float  g_fMeleeTankDamage, g_fMeleeWitchDamage;
 ConVar g_hMeleeTankDamage, g_hMeleeWitchDamage;
 
-float g_fMeleeTankDamage, g_fMeleeWitchDamage;
+int    g_iMeleeTankDisplay, g_iMeleeWitchDisplay;
+ConVar g_hMeleeTankDisplay, g_hMeleeWitchDisplay;
 
 bool g_bLateLoad;
 
@@ -41,10 +43,14 @@ public void OnPluginStart()
 	}
 
 	g_hMeleeTankDamage	= CreateConVar("l4d2_melee_tank_damage", "200.0", "设置近战对坦克的伤害. -1.0=禁用,0.0=免疫近战伤害,0.01=1%,类推,1.0=100%(1刀死),大于1.0=实际伤害.", FCVAR_NOTIFY);
+	g_hMeleeTankDisplay	= CreateConVar("l4d2_melee_tank_display", "1", "显示近战对坦克的伤害. 0=禁用, 1=显示.", FCVAR_NOTIFY);
 	g_hMeleeWitchDamage	= CreateConVar("l4d2_melee_witch_damage", "-1.0", "设置近战对女巫的伤害. -1.0=禁用,0.0=免疫近战伤害,0.01=1%,类推,1.0=100%(1刀死),大于1.0=实际伤害.", FCVAR_NOTIFY);
-
+	g_hMeleeWitchDisplay= CreateConVar("l4d2_melee_witch_display", "1", "显示近战对女巫的伤害. 0=禁用, 1=显示.", FCVAR_NOTIFY);
+ 
 	g_hMeleeTankDamage.AddChangeHook(ConVarChanged);
+	g_hMeleeTankDisplay.AddChangeHook(ConVarChanged);
 	g_hMeleeWitchDamage.AddChangeHook(ConVarChanged);
+	g_hMeleeWitchDisplay.AddChangeHook(ConVarChanged);
 	
 	AutoExecConfig(true, "l4d2_antimelee");//生成指定文件名的CFG.
 }
@@ -62,7 +68,9 @@ public void ConVarChanged(Handle convar, const char[] oldValue, const char[] new
 void GetCvars()
 {
 	g_fMeleeTankDamage = g_hMeleeTankDamage.FloatValue;
+	g_iMeleeTankDisplay = g_hMeleeTankDisplay.IntValue;
 	g_fMeleeWitchDamage = g_hMeleeWitchDamage.FloatValue;
+	g_iMeleeWitchDisplay = g_hMeleeWitchDisplay.IntValue;
 }
 
 public void OnClientPutInServer(int client)
@@ -89,13 +97,15 @@ public Action TankOnTakeDamage(int victim, int &attacker, int &inflictor, float 
 	
 	if(g_fMeleeTankDamage == 0.0)
 	{
-		PrintHintText(attacker, "坦克免疫近战伤害.");
+		if(g_iMeleeTankDisplay != 0)
+			PrintHintText(attacker, "坦克免疫近战伤害.");
 		return Plugin_Handled;
 	}
 	else
 	{
 		damage = g_fMeleeTankDamage > 1.0 ? g_fMeleeTankDamage : g_fMeleeTankDamage * GetEntProp(victim, Prop_Data, "m_iMaxHealth");
-		PrintHintText(attacker, "你的近战对坦克造成了%d点伤害.", RoundFloat(damage));
+		if(g_iMeleeTankDisplay != 0)
+			PrintHintText(attacker, "你的近战对坦克造成了%d点伤害.", RoundFloat(damage));
 	}
 	return Plugin_Changed;
 }
@@ -107,13 +117,15 @@ public Action WitchOnTakeDamage(int victim, int &attacker, int &inflictor, float
 	
 	if(g_fMeleeWitchDamage == 0.0)
 	{
-		PrintHintText(attacker, "女巫免疫近战伤害.");
+		if(g_iMeleeWitchDisplay != 0)
+			PrintHintText(attacker, "女巫免疫近战伤害.");
 		return Plugin_Handled;
 	}
 	else
 	{
 		damage = g_fMeleeWitchDamage > 1.0 ? g_fMeleeWitchDamage : g_fMeleeWitchDamage * GetEntProp(victim, Prop_Data, "m_iMaxHealth");
-		PrintHintText(attacker, "你的近战对女巫造成了%d点伤害.", RoundFloat(damage));
+		if(g_iMeleeWitchDisplay != 0)
+			PrintHintText(attacker, "你的近战对女巫造成了%d点伤害.", RoundFloat(damage));
 	}
 	return Plugin_Changed;
 }

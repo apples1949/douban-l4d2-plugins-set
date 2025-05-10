@@ -291,11 +291,7 @@ char[] GetTrueName(int client)
 {
 	char g_sName[32];
 	int Bot = IsClientIdle(client);
-	
-	if(Bot != 0)
-		Format(g_sName, sizeof(g_sName), "闲置:%N", Bot);
-	else
-		GetClientName(client, g_sName, sizeof(g_sName));
+	GetClientName(Bot != 0 ? Bot : client, g_sName, sizeof(g_sName));
 	return g_sName;
 }
 
