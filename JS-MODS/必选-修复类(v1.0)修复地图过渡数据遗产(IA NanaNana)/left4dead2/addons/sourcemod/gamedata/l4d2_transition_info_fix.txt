@@ -56,13 +56,15 @@
 				"windows"	"\x2A\x2A\x2A\x2A\x2A\x2A\x2A\x2A\x2A\x8B\x01\x8B\x50\x3C\xFF\xD2\x84\xC0"
 				/* sub_10252460 */
 			}
+			
+			/* CDirector::OnServerShutdown(CDirector *__hidden this) */
 			"ServerShutdown"
-			{
-				"library"    "server"
-				"linux"		"@_ZN9CDirector16OnServerShutdownEv"
-				"windows"	"\x2A\x2A\x2A\x2A\x2A\x2A\x8B\xF1\x8B\x8E\x74\x05\x2A\x2A\x8B\x01\x8B\x10\x57"
-				/* sub_10261B60 */
-			}
+            {
+                "library"    "server"
+                "linux"        "@_ZN9CDirector16OnServerShutdownEv"
+                "windows"    "\x2A\x2A\x2A\x2A\x2A\x2A\x8B\x2A\x8B\x8E\x2A\x2A\x2A\x2A\x8B\x2A\x8B\x2A\x57"
+                /* ? ? ? ? ? ? 8B ? 8B 8E ? ? ? ? 8B ? 8B ? 57 */
+            }
 		}
 	}
 }

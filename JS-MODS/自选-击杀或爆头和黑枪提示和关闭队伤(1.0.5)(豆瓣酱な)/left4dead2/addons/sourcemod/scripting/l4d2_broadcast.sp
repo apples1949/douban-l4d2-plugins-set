@@ -20,6 +20,10 @@
  *
  *	1:尝试修复计时器报错问题.
  *
+ *	v1.0.5
+ *
+ *	1:优化部分代码,重写友伤cvar说明.
+ *
  */
 #pragma semicolon 1
 //強制1.7以後的新語法
@@ -28,7 +32,7 @@
 #include <sdkhooks>
 
 //定义插件版本.
-#define PLUGIN_VERSION	"1.0.4"
+#define PLUGIN_VERSION	"1.0.5"
 //榴弹发射器伤害(有燃烧火高爆弹药时).
 #define	DMG_OTHER		(1 << 30)
 
@@ -77,7 +81,7 @@ public void OnPluginStart()
 	
 	g_hBroadcast = CreateConVar("l4d2_broadcast_player_death", "3", "击杀或爆头提示? 0=禁用, 1=击杀时, 2=爆头时, 3=全部.", FCVAR_NOTIFY);
 	g_hPlayerHurt = CreateConVar("l4d2_broadcast_player_hurt", "1", "幸存者黑枪提示? 0=禁用, 1=启用.", FCVAR_NOTIFY);
-	g_hTakeDamage = CreateConVar("l4d2_broadcast_take_damage", "15", "关闭幸存者友伤功能? 0=启用, 1=队伤(玩家火和爆炸伤害也是队伤范围), 2=火伤(只限地图火或间接火), 4=爆炸类(只限非玩家引爆)(土制炸弹,煤气罐,氧气罐), 8=榴弹发射器(闲置榴弹), 15=全部.", FCVAR_NOTIFY);
+	g_hTakeDamage = CreateConVar("l4d2_broadcast_take_damage", "15", "幸存者友伤功能. 0=启用友伤, 1=友伤, 2=火伤, 4=爆炸类(土制炸弹,煤气罐,氧气罐), 8=榴弹发射器, 15=全部.", FCVAR_NOTIFY);
 	g_hBroadcast.AddChangeHook(ConVarChanged);
 	g_hPlayerHurt.AddChangeHook(ConVarChanged);
 	g_hTakeDamage.AddChangeHook(ConVarChanged);
@@ -105,36 +109,39 @@ public void OnClientPutInServer(int client)
 //SDK回调.
 public Action OnTakeDamage(int client, int &attacker, int &inflictor, float &damage, int &damagetype)
 { 
-	if(g_iTakeDamage > 0)
+	if(g_iTakeDamage <= 0)
+		return Plugin_Continue;
+
+	if(IsValidClient(client) && GetClientTeam(client) == 2)
 	{
-		if(IsValidClient(client) && GetClientTeam(client) == 2)
+		if(IsValidClient(attacker) && g_iTakeDamage & Number_1)
 		{
-			if(IsValidClient(attacker) && g_iTakeDamage & Number_1)
+			switch(GetClientTeam(attacker))
 			{
-				switch(GetClientTeam(attacker))
+				case 1:
 				{
-					case 1:
-					{
-						int iBot = iGetBotOfIdlePlayer(attacker);//返回闲置玩家对应的电脑.
-						if(iBot != 0)//玩家是闲置状态,反之是旁观者.
-							return Plugin_Handled;//阻止伤害.
-					}
-					case 2:
-					{
+					int iBot = iGetBotOfIdlePlayer(attacker);//返回闲置玩家对应的电脑.
+					if(iBot != 0)//玩家是闲置状态,反之是旁观者.
 						return Plugin_Handled;//阻止伤害.
-					}
+				}
+				case 2:
+				{
+					return Plugin_Handled;//阻止伤害.
 				}
 			}
-			if(damagetype & DMG_BURN || damagetype & DMG_PREVENT_PHYSICS_FORCE || damagetype & DMG_DIRECT)//火焰伤害(只限地图火和间接火).
-				if(g_iTakeDamage & Number_2)
-					return Plugin_Handled;
-			if(damagetype & DMG_BLAST || damagetype & DMG_BLAST_SURFACE)//爆炸类(土制炸弹,煤气罐,氧气罐).
-				if(g_iTakeDamage & Number_4)
-					return Plugin_Handled;
-			if(damagetype & DMG_BLAST || damagetype & DMG_PLASMA || damagetype & DMG_AIRBOAT || damagetype & DMG_OTHER)//榴弹发射器(最后一个类型是有特殊弹药时).
-				if(g_iTakeDamage & Number_8)
-					return Plugin_Handled;
 		}
+
+		if(g_iTakeDamage & Number_2)
+			if(IsInflictor(inflictor, "inferno"))//火焰类.
+				return Plugin_Handled;
+
+		if(g_iTakeDamage & Number_4)
+			if(IsInflictor(inflictor, "pipe_bomb_pr"))//爆炸类(土制炸弹,煤气罐,氧气罐).
+				return Plugin_Handled;
+				
+		if(g_iTakeDamage & Number_8)
+			if(IsInflictor(inflictor, "grenade_laun"))//榴弹发射器.
+				return Plugin_Handled;
 	}
 	return Plugin_Continue;
 }
@@ -292,4 +299,15 @@ stock int IsClientIdle(int client)
 		return 0;
 
 	return GetClientOfUserId(GetEntProp(client, Prop_Send, "m_humanSpectatorUserID"));
+}
+//获取伤害来源类名.
+stock bool IsInflictor(int inflictor, char[] sName)
+{
+	if(inflictor > MaxClients)
+	{
+		static char classname[13];
+		GetEdictClassname(inflictor, classname, sizeof(classname));
+		return strcmp(classname, sName) == 0;
+	}
+	return false;
 }
