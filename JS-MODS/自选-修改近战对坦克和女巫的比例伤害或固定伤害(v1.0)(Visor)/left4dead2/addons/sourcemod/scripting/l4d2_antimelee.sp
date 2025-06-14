@@ -97,14 +97,14 @@ public Action TankOnTakeDamage(int victim, int &attacker, int &inflictor, float 
 	
 	if(g_fMeleeTankDamage == 0.0)
 	{
-		if(g_iMeleeTankDisplay != 0)
+		if(g_iMeleeTankDisplay != 0 && IsPlayerState(victim))
 			PrintHintText(attacker, "坦克免疫近战伤害.");
 		return Plugin_Handled;
 	}
 	else
 	{
 		damage = g_fMeleeTankDamage > 1.0 ? g_fMeleeTankDamage : g_fMeleeTankDamage * GetEntProp(victim, Prop_Data, "m_iMaxHealth");
-		if(g_iMeleeTankDisplay != 0)
+		if(g_iMeleeTankDisplay != 0 && IsPlayerState(victim))
 			PrintHintText(attacker, "你的近战对坦克造成了%d点伤害.", RoundFloat(damage));
 	}
 	return Plugin_Changed;
@@ -129,7 +129,11 @@ public Action WitchOnTakeDamage(int victim, int &attacker, int &inflictor, float
 	}
 	return Plugin_Changed;
 }
-
+//正常状态.
+stock bool IsPlayerState(int client)
+{
+	return !GetEntProp(client, Prop_Send, "m_isIncapacitated") && !GetEntProp(client, Prop_Send, "m_isHangingFromLedge");
+}
 bool IsSurvivor(int attacker)
 {
 	return attacker > 0 && attacker <= MaxClients && IsClientInGame(attacker) && GetClientTeam(attacker) == 2;

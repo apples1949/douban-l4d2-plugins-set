@@ -116,7 +116,7 @@ void IsGetCvars()
 public void Event_WitchSpawn(Event event, const char[] name, bool dontBroadcast)
 {
 	int iWitchid = event.GetInt("witchid");
-	if (IsValidEdict(iWitchid))
+	if (IsValidEntity(iWitchid))
 	{
 		//这里使用下一帧.
 		DataPack hPack = new DataPack();
@@ -131,7 +131,7 @@ void IsWitchFrameHealth(DataPack hPack)
 	hPack.Reset();
 	int iWitchid = hPack.ReadCell();
 	
-	if (IsValidEdict(iWitchid))
+	if (IsValidEntity(iWitchid))
 	{
 		for (int i = 1; i <= MaxClients; i++)
 			g_fWitchSlayer[i][iWitchid] = 0.0;
@@ -159,7 +159,7 @@ public void OnEntityCreated (int entity, const char[] classname)
 //实体删除.
 public void OnEntityDestroyed(int iEntity)
 {
-	if(IsValidEdict(iEntity))
+	if(IsValidEntity(iEntity))
 	{
 		static char sEntity[64];
 		GetEntityClassname(iEntity, sEntity, sizeof(sEntity));
@@ -176,21 +176,21 @@ public Action OnTakeDamageAlive(int client, int &attacker, int &inflictor, float
 {
 	if(IsValidClient(attacker) && GetClientTeam(attacker) == 2)
 	{
-		if (IsValidEdict(client))
+		if (IsValidEntity(client))
 		{
 			int iBot = IsClientIdle(attacker);
 			g_fWitchHurt[client] = GetWitchHealth(client);//记录女巫剩余的血量.
 			g_fSurvivorWitchHurt[!iBot ? attacker : iBot][client] += damage > g_fWitchHurt[client] ? g_fWitchHurt[client] < 0.0 ? 0.0 : g_fWitchHurt[client] : damage;
 		}
 	}
-	return Plugin_Changed;
+	return Plugin_Continue;
 }
 //女巫死亡.
 public void Event_Witchkilled(Event event, const char[] name, bool dontBroadcast)
 {
 	int iWitchid = event.GetInt("witchid");
 
-	if (IsValidEdict(iWitchid))
+	if (IsValidEntity(iWitchid))
 	{
 		if (g_iWitchRanking > 0)
 		{

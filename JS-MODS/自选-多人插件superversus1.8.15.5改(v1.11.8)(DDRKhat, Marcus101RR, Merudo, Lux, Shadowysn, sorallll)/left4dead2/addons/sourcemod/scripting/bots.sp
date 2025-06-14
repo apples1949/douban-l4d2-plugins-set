@@ -367,6 +367,7 @@ public void OnPluginStart() {
 	HookEvent("player_bot_replace",		Event_PlayerBotReplace);
 	HookEvent("bot_player_replace",		Event_BotPlayerReplace);
 	HookEvent("finale_vehicle_leaving",	Event_FinaleVehicleLeaving);
+	HookEvent("player_disconnect",		Event_PlayerDisconnect, EventHookMode_Pre);
 
 	if (g_bLateLoad)
 		g_bRoundStart = !OnEndScenario();
@@ -937,14 +938,96 @@ bool IsNullSlot(int slot) {
 
 public void OnClientDisconnect(int client) {
 	if (IsFakeClient(client))
-		return;
-
-	g_ePlayer[client].AuthId[0] = '\0';
-
-	if (g_bRoundStart) {
-		delete g_hBotsTimer;
-		g_hBotsTimer = CreateTimer(1.0, tmrBotsUpdate);
+	{
+		if (g_bRoundStart) {
+			delete g_hBotsTimer;
+			g_hBotsTimer = CreateTimer(1.0, tmrBotsUpdate);
+		}
 	}
+}
+
+void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast) 
+{
+	int client = GetClientOfUserId(GetEventInt(event,"userid"));
+
+	if (client > 0 && client <= MaxClients && !IsFakeClient(client))
+	{
+		if (IsClientInGame(client))
+		{
+			char sName[128], sReason[128];
+			event.GetString("name", sName, sizeof(sName));
+			event.GetString("reason", sReason, sizeof(sReason));//获取玩家离开游戏的原因.
+
+			if (strcmp(sReason, "No Steam logon") == 0)
+			{
+				switch(GetClientTeam(client))//判断玩家团队
+				{
+					case 1://玩家是观察者.
+					{
+						int iBot = iGetBotOfIdlePlayer(client);//获取观察者对应的电脑生还者索引.
+						if(iBot != 0)//玩家是闲置状态(反之是旁观者状态).
+						{
+							if(g_ePlayer[client].AuthId[0] != '\0')
+							{
+								g_smSteamIDs.Remove(g_ePlayer[client].AuthId);
+								//PrintToChatAll("原因:%s(闲置)1(%s)", sReason, g_ePlayer[client].AuthId);
+							}
+							//else
+							//	PrintToChatAll("原因:%s(闲置)2(%s)", sReason, g_ePlayer[client].AuthId);
+						}
+						//else
+						//	PrintToChatAll("原因:%s(旁观)(%s)", sReason, g_ePlayer[client].AuthId);
+					}
+					case 2://玩家是生还者.
+					{
+						if(IsPlayerAlive(client))
+						{
+							if(g_ePlayer[client].AuthId[0] != '\0')
+							{
+								g_smSteamIDs.Remove(g_ePlayer[client].AuthId);
+								//PrintToChatAll("原因:%s(存活)1(%s)", sReason, g_ePlayer[client].AuthId);
+							}
+							//else
+							//	PrintToChatAll("原因:%s(存活)2(%s)", sReason, g_ePlayer[client].AuthId);
+						}
+						//else
+						//	PrintToChatAll("原因:%s(死亡)(%s)", sReason, g_ePlayer[client].AuthId);
+					}
+					case 3:{}//玩家是感染者.
+				}
+			}
+			//else
+			//	PrintToChatAll("原因:%s(其它)(%s)", sReason, g_ePlayer[client].AuthId);
+		}
+		g_ePlayer[client].AuthId[0] = '\0';
+
+		if (g_bRoundStart) {
+			delete g_hBotsTimer;
+			g_hBotsTimer = CreateTimer(1.0, tmrBotsUpdate);
+		}
+	}
+}
+//返回闲置玩家对应的电脑.
+stock int iGetBotOfIdlePlayer(int client)
+{
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsClientInGame(i) && IsFakeClient(i) && GetClientTeam(i) == 2 && IsClientIdle(i) == client)
+			return i;
+	}
+	return 0;
+}
+stock int IsClientIdle(int client)
+{
+	if (!HasEntProp(client, Prop_Send, "m_humanSpectatorUserID"))
+		return 0;
+
+	return GetClientOfUserId(GetEntProp(client, Prop_Send, "m_humanSpectatorUserID"));
+}
+//判断玩家有效.
+stock bool IsValidClient(int client)
+{
+	return client > 0 && client <= MaxClients && IsClientInGame(client);
 }
 
 Action tmrBotsUpdate(Handle timer) {
