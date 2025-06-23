@@ -155,7 +155,6 @@ stock void SetFirstHealth(int client)
 	if((client = GetClientOfUserId(client)) && !IsFakeClient(client) && GetClientTeam(client) == 2)
 	{
 		g_bFirstPlayer = true;
-		
 		SetPlayerHealth(client, GetConVarInt(g_hSurvivorMaxHeal));
 		SetEntProp(client, Prop_Data, "m_iMaxHealth", GetConVarInt(g_hSurvivorMaxHeal));
 
@@ -324,7 +323,7 @@ void Event_PlayerFirstSpawn(Event event, const char[] name, bool dontBroadcast)
 	
 	if(IsValidClient(client) && IsFakeClient(client) && GetClientTeam(client) == 2)
 	{
-		SetPlayerHealth(client, GetConVarInt(g_hSurvivorMaxHeal));//这个事件设置的血量会被还原或闲置覆盖.
+		SetPlayerHealth(client, GetConVarInt(g_hSurvivorMaxHeal));//这个事件设置的血量会被过渡还原或闲置覆盖.
 		SetEntProp(client, Prop_Data, "m_iMaxHealth", GetConVarInt(g_hSurvivorMaxHeal));
 		
 		#if DEBUG
@@ -339,7 +338,7 @@ void Event_PlayerFirstSpawn(Event event, const char[] name, bool dontBroadcast)
 //玩家开始闲置.
 MRESReturn OnGoAwayFromKeyboard_Pre(int pThis, DHookReturn hReturn)
 {
-	g_bSpectator[pThis] = true;//玩家从生还者加入旁观者.
+	g_bSpectator[pThis] = true;//玩家开始闲置.
 	#if DEBUG
 	PrintToChatAll("\x04[提示Pre]\x05(%d)(%N)闲置.", pThis, pThis);
 	#endif
@@ -348,8 +347,7 @@ MRESReturn OnGoAwayFromKeyboard_Pre(int pThis, DHookReturn hReturn)
 //玩家完成闲置.
 MRESReturn OnGoAwayFromKeyboard_Post(int pThis, DHookReturn hReturn) 
 {
-	//pThis = 团队1
-	g_bSpectator[pThis] = false;
+	g_bSpectator[pThis] = false;//玩家完成闲置.
 
 	#if DEBUG
 	int iBot = iGetBotOfIdlePlayer(pThis);//闲置也能触发.

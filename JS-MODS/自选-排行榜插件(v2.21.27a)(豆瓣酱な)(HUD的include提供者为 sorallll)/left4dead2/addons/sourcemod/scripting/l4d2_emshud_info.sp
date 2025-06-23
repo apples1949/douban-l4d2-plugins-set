@@ -11,7 +11,7 @@
 #define REQUIRE_PLUGIN	//标记为可选结束.
 
 #define CVAR_FLAGS		FCVAR_NOTIFY
-#define PLUGIN_VERSION	"2.20.27"
+#define PLUGIN_VERSION	"2.21.27a"
 
 #define	Number_1		(1 << 0)
 #define Number_2		(1 << 1)
@@ -56,8 +56,8 @@ float g_fCoord[] = {0.00, 0.055, 0.110, 0.160, 0.215, 0.265, 0.315, 0.365, 0.415
 
 int    g_iReportTime, g_iDisplayNumber, /*g_iPlayerNum, */g_iChapterTotal[2], g_iCumulativeTotal[2], g_iKillSpecial[MAXPLAYERS+1], g_iHeadSpecial[MAXPLAYERS+1], g_iKillZombie[MAXPLAYERS+1], g_iDmgHealth[2][MAXPLAYERS+1], g_iPlayerHP[MAXPLAYERS+1];
 
-int    g_iSurvivorHealth, g_iMaxReviveCount, g_iPlayersNumber, g_iShowServerName, g_iShowServerTimer, g_iShowServerNumber, g_iShowServerTime, g_iFakeRanking, g_iTypeRanking, g_iDispRanking, g_iRulesRanking, g_iInfoRanking;
-ConVar g_hSurvivorHealth, g_hMaxReviveCount, g_hPlayersNumber, g_hShowServerName, g_hShowServerTimer, g_hShowServerNumber, g_hShowServerTime, g_hFakeRanking, g_hTypeRanking, g_hDispRanking, g_hRulesRanking, g_hInfoRanking;
+int    g_iSurvivorHealth, g_iMaxReviveCount, g_iPlayersNumber, g_iShowServerName, g_iShowServerTimer, g_iShowServerNumber, g_iShowServerTime, g_iFakeRanking, g_iTypeRanking, g_iDispRanking, g_iRulesRanking, g_iKillStatistics, g_iKillResetTotal, g_iInfoRanking;
+ConVar g_hSurvivorHealth, g_hMaxReviveCount, g_hPlayersNumber, g_hShowServerName, g_hShowServerTimer, g_hShowServerNumber, g_hShowServerTime, g_hFakeRanking, g_hTypeRanking, g_hDispRanking, g_hRulesRanking, g_hKillStatistics, g_hKillResetTotal, g_hInfoRanking;
 int g_iMaxChapters, g_iCurrentChapter;
 ConVar g_hHostName, g_cVsBossBuff;
 
@@ -104,6 +104,8 @@ public void OnPluginStart()
 	g_hTypeRanking		= CreateConVar("l4d2_emshud_ranking_Type", "511", "排行榜显示那些内容(需要启用的功能数字相加). 0=禁用, 1=状态, 2=难度, 4=血量, 8=特感, 16=爆头, 32=丧尸, 64=被黑, 128=友伤, 256=名字, 511=全部.", CVAR_FLAGS);
 	g_hDispRanking		= CreateConVar("l4d2_emshud_ranking_disp", "63", "那些内容的值都为<0>时自动隐藏(需要自动隐藏的功能数字相加). 0=显示, 1=血量, 2=特感, 4=爆头, 8=丧尸, 16=被黑, 32=友伤, 63=全部.", CVAR_FLAGS);
 	g_hRulesRanking		= CreateConVar("l4d2_emshud_ranking_rules", "2", "设置用什么类型排序. 1=血量, 2=特感, 3=爆头, 4=丧尸, 5=被黑, 6=友伤.", CVAR_FLAGS);
+	g_hKillStatistics	= CreateConVar("l4d2_emshud_kill_statistics", "15", "显示那些击杀统计. 0=禁用, 1=丧尸(章节), 2=特感(章节), 4=丧尸(总计), 8=特感(总计), 15=全部.", CVAR_FLAGS);
+	g_hKillResetTotal	= CreateConVar("l4d2_emshud_kill_reset_total", "3", "服务器无人时重置那些变量. 0=禁用, 1=丧尸(总计), 2=特感(总计), 3=全部.", CVAR_FLAGS);
 	
 	g_hSurvivorHealth.AddChangeHook(ConVarChanged);
 	g_hMaxReviveCount.AddChangeHook(ConVarChanged);
@@ -118,6 +120,8 @@ public void OnPluginStart()
 	g_hTypeRanking.AddChangeHook(ConVarChanged);
 	g_hDispRanking.AddChangeHook(ConVarChanged);
 	g_hRulesRanking.AddChangeHook(ConVarChanged);
+	g_hKillStatistics.AddChangeHook(ConVarChanged);
+	g_hKillResetTotal.AddChangeHook(ConVarChanged);
 	
 	AutoExecConfig(true, "l4d2_emshud_info");//生成指定文件名的CFG.
 }
@@ -140,7 +144,16 @@ public MRESReturn OnHibernationUpdate(DHookParam hParams)
 
 	if(!hibernating) 
 		return MRES_Ignored;
-		
+	
+	if(g_iKillResetTotal > 0)
+	{
+		if(g_iKillResetTotal & Number_1)
+			g_iCumulativeTotal[0] = 0;//重置丧尸击杀总数量.
+
+		if(g_iKillResetTotal & Number_2)
+			g_iCumulativeTotal[1] = 0;//重置特感击杀总数量.
+	}
+	
 	g_bMapRunTime = false;
 	return MRES_Handled;
 }
@@ -188,6 +201,8 @@ void GetCvars()
 	g_iTypeRanking		= g_hTypeRanking.IntValue;
 	g_iDispRanking		= g_hDispRanking.IntValue;
 	g_iRulesRanking		= g_hRulesRanking.IntValue;
+	g_iKillStatistics	= g_hKillStatistics.IntValue;
+	g_iKillResetTotal	= g_hKillResetTotal.IntValue;
 	g_fVsBossBuff		= g_cVsBossBuff.FloatValue;
 	
 	if( g_iReportTime < 5)
@@ -530,6 +545,10 @@ void IsRemoveListHUD()
 	//删除玩家名字HUD.
 	if(HUDSlotIsUsed(HUD_SCORE_TITLE))
 		RemoveHUD(HUD_SCORE_TITLE);
+
+	//删除击杀统计HUD.
+	if(HUDSlotIsUsed(HUD_FAR_LEFT))
+		RemoveHUD(HUD_FAR_LEFT);
 }
 
 //显示指定的HUD.
@@ -553,8 +572,51 @@ void IsShowAllHUD()
 	//显示击杀特感排行榜.
 	if(g_iInfoRanking > 0)
 		IsKillLeaderboards();
+	//显示击杀特感丧尸统计.
+	if(g_iKillStatistics > 0)
+		IsKillStatistics();
 }
+//显示击杀特感丧尸统计.
+void IsKillStatistics()
+{
+	static char g_sTitleName[][][] = 
+	{
+		{"➣章节:", "丧尸"}, 
+		{"➣总计:", "丧尸"}, 
+		{"➣章节:", "特感"}, 
+		{"➣总计:", "特感"},
+	};
 
+	char sData[128], sInfo[sizeof(g_sTitleName)][32];
+	int iDistance[sizeof(g_sTitleName)], iValue[sizeof(g_sTitleName)];
+	
+	if(g_iKillStatistics & Number_1)
+		iDistance[0] = g_iChapterTotal[0];
+
+	if(g_iKillStatistics & Number_2)
+		iDistance[1] = g_iCumulativeTotal[0];
+
+	if(g_iKillStatistics & Number_4)
+		iDistance[2] = g_iChapterTotal[1];
+
+	if(g_iKillStatistics & Number_8)
+		iDistance[3] = g_iCumulativeTotal[1];
+
+	int iTemp = GetMaxiMum(iDistance, sizeof(iDistance));//获取数组中的最大值.
+	
+	for (int i = 0; i < sizeof(iDistance); i++)
+		if (iDistance[i] > 0)
+			iValue[i] = GetCharacterSize(iTemp) - GetCharacterSize(iDistance[i]);
+		
+	for (int i = 0; i < sizeof(iDistance); i++)
+		if (iDistance[i] > 0)
+			FormatEx(sInfo[i], sizeof(sInfo[]), "%s%s%d%s\n", g_sTitleName[i][0], GetAddSpacesMax(iValue[i], "0"), iDistance[i], g_sTitleName[i][1]);
+	
+	ImplodeStrings(sInfo, sizeof(sInfo), "", sData, sizeof(sData));//打包字符串.
+	HUDSetLayout(HUD_FAR_LEFT, HUD_FLAG_BLINK|HUD_FLAG_ALIGN_RIGHT|HUD_FLAG_NOBG|HUD_FLAG_TEXT, sData);
+	HUDPlace(HUD_FAR_LEFT,0.00,0.25,1.0,0.22);
+	//PrintToChatAll("字符数2:(%d)", strlen(sData));
+}
 //开局提示.
 public void OnClientPostAdminCheck(int client)
 {
@@ -1089,6 +1151,7 @@ void IsShowServersNumber(int[] iQuantity)
 
 	HUDSetLayout(HUD_SCORE_1, HUD_FLAG_BLINK|HUD_FLAG_ALIGN_RIGHT|HUD_FLAG_NOBG|HUD_FLAG_TEXT, sData);
 	HUDPlace(HUD_SCORE_1,0.00,g_iShowServerName <= -1?0.035:0.06,1.0,0.22);
+	//PrintToChatAll("字符数1:(%d)", strlen(sData));
 }
 //获取玩家总数量.
 stock int GetPlayersTotalNumber()

@@ -8,7 +8,7 @@
 #define PLUGIN_NAME				"Give Item Menu"
 #define PLUGIN_AUTHOR			"sorallll"
 #define PLUGIN_DESCRIPTION		"多功能插件"
-#define PLUGIN_VERSION			"1.2.3"
+#define PLUGIN_VERSION			"1.2.3b"
 #define PLUGIN_URL				""
 
 #define GAMEDATA				"rygive"
@@ -1648,8 +1648,10 @@ void SlayAllSur(int client) {
 
 void WarpAllSurToStartArea(int client) {
 	for (int i = 1; i <= MaxClients; i++) {
-		if (IsClientInGame(i) && GetClientTeam(i) == 2 && IsPlayerAlive(i))
+		if (IsClientInGame(i) && GetClientTeam(i) == 2 && IsPlayerAlive(i)) {
+			ReleaseControl(i);
 			CheatCommand(i, "warp_to_start_area");
+		}
 	}
 	Miscell(client, g_iSelection[client]);
 }
@@ -1663,6 +1665,7 @@ void WarpAllSurToCheckpoint(int client) {
 				float vPos[3];
 				for (int i = 1; i <= MaxClients; i++) {
 					if (IsClientInGame(i) && GetClientTeam(i) == 2 && IsPlayerAlive(i)) {
+						ReleaseControl(i);//传送到终点前先解控.
 						L4D_FindRandomSpot(navArea, vPos);
 						TeleportEntity(i, vPos, NULL_VECTOR, NULL_VECTOR);
 					}
@@ -1672,8 +1675,44 @@ void WarpAllSurToCheckpoint(int client) {
 			}
 		}
 	}
+	
+	//传送到终点前先解控.
+	for (int i = 1; i <= MaxClients; i++)
+		if (IsClientInGame(i) && GetClientTeam(i) == 2 && IsPlayerAlive(i))
+			ReleaseControl(i);
+
 	ExecuteCommand("warp_all_survivors_to_checkpoint");
 	Miscell(client, g_iSelection[client]);
+}
+//解除感染者控制生还者.
+void ReleaseControl(int victim)
+{
+	int attacker;
+	attacker = GetEntPropEnt(victim, Prop_Send, "m_tongueOwner");
+	if(attacker > 0)
+		L4D_Smoker_ReleaseVictim(victim, attacker);
+
+	attacker = GetEntPropEnt(victim, Prop_Send, "m_pounceAttacker");
+	if(attacker > 0)
+		L4D_Hunter_ReleaseVictim(victim, attacker);
+
+	attacker = GetEntPropEnt(victim, Prop_Send, "m_jockeyAttacker");
+	if(attacker > 0)
+		L4D2_Jockey_EndRide(victim, attacker);
+
+	attacker = GetEntPropEnt(victim, Prop_Send, "m_carryAttacker");
+	if(attacker > 0)
+	{
+		PrintToChatAll("(%N)(%N)", victim, attacker);
+		L4D2_Charger_EndCarry(victim, attacker);
+	}
+	
+	attacker = GetEntPropEnt(victim, Prop_Send, "m_pummelAttacker");
+	if(attacker > 0)
+	{
+		PrintToChatAll("(%N)(%N)", victim, attacker);
+		L4D2_Charger_EndPummel(victim, attacker);
+	}
 }
 
 void ExecuteCommand(const char[] command, const char[] value = "") {

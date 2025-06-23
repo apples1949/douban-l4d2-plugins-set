@@ -7,25 +7,27 @@
  *	
  *	1:设置伤害函数后面不能设置类型,否则会疯狂报错.
  *
+ * v1.2.4
+ *	
+ *	1:设置伤害阻止原始伤害改成直接更改伤害.
+ *	2:判断火焰伤害类型从伤害类型更改为类名方法.
  *
  */
 #pragma semicolon 1
 //強制1.7以後的新語法
 #pragma newdecls required
+//加载include库.
 #include <sourcemod>
 #include <sdkhooks>
 #include <sdktools>
-
-#define PLUGIN_VERSION "1.1.4"
-
-#define DMG_FIRE	2056
-#define DMG_ONFIRE	268435464
+//定义插件版本.
+#define PLUGIN_VERSION "1.2.4"
 
 bool g_bLateLoad;
 
 int    g_iTankDamage;
 ConVar g_hTankDamage;
-
+//定义插件信息.
 public Plugin myinfo =  
 {
 	name = "重置火焰伤害",
@@ -37,7 +39,7 @@ public Plugin myinfo =
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
-	g_bLateLoad = late;
+	g_bLateLoad = late;//延迟加载插件.
 	return APLRes_Success;
 }
 
@@ -49,7 +51,7 @@ public void OnPluginStart()
 
 	if(g_bLateLoad)//如果插件延迟加载.
 		for(int i = 1; i <= MaxClients; i++)
-			if(IsValidClient(i) && IsValidTank(i))
+			if(IsClientInGame(i))
 				OnClientPutInServer(i);
 }
 
@@ -67,12 +69,11 @@ void IsTankDamage()
 {
 	g_iTankDamage = g_hTankDamage.IntValue;
 }
-
+//玩家连接成功.
 public void OnClientPutInServer(int client)
 {
 	SDKHook(client, SDKHook_OnTakeDamageAlive, OnTakeDamageAlive);//重新设置坦克受到的火焰伤害.
 }
-
 //重新设置坦克受到的火焰伤害.
 public Action OnTakeDamageAlive(int client, int &attacker, int &inflictor, float &damage, int &damagetype, int &weapon, float damageForce[3], float damagePosition[3], int damagecustom)
 { 
@@ -81,36 +82,53 @@ public Action OnTakeDamageAlive(int client, int &attacker, int &inflictor, float
 
 	if(IsValidClient(client) && IsValidTank(client))
 	{	
-		if(damagetype == DMG_BURN  || damagetype == DMG_FIRE || damagetype == DMG_ONFIRE)
+		if(IsInflictor(inflictor, "inferno"))//火焰类.
 		{
 			if(g_iTankDamage == 0)
 			{
 				if(GetEntityFlags(client) & FL_ONFIRE)//判断客户端是否着火.
+				{
 					ExtinguishEntity(client);//灭火.
-				return Plugin_Handled;
+
+					int entity = GetEntPropEnt(client, Prop_Send, "m_hEffectEntity");
+					
+					if(IsValidEntity(entity))
+						RemoveEntity(entity);
+				}
+				
+				damage = 0.0;
+				return Plugin_Changed;//更改原始伤害.
 			}
 			else
 			{
-				int iHealth = GetClientHealth(client);
-				
-				if (iHealth > g_iTankDamage)
+				if (GetClientHealth(client) > g_iTankDamage)
 				{
-					SDKHooks_TakeDamage(client, inflictor, attacker, float(g_iTankDamage));//设置指定的伤害.
-					//PrintToChat(attacker, "[提示]攻击者%N|%N,血量:%d,伤害:%f,类型:%d.", attacker, client, iHealth, damage, damagetype);
-					return Plugin_Handled;//阻止原始伤害.
+					damage = float(g_iTankDamage);
+					return Plugin_Changed;//更改原始伤害.
 				}
 			}
 		}
 	}
 	return Plugin_Continue;
 }
-
+//玩家有效.
 stock bool IsValidClient(int client)
 {
 	return client > 0 && client <= MaxClients && IsClientInGame(client);
 }
-
+//存活坦克.
 stock bool IsValidTank(int client)  
 {
-	return GetClientTeam(client) == 3 && IsPlayerAlive(client) && GetEntProp(client, Prop_Send, "m_zombieClass") == 8;
+	return GetClientTeam(client) == 3 && GetEntProp(client, Prop_Send, "m_zombieClass") == 8 && IsPlayerAlive(client);
+}
+//获取伤害来源类名.
+stock bool IsInflictor(int inflictor, char[] sName)
+{
+	if(inflictor > MaxClients)
+	{
+		static char classname[13];
+		GetEdictClassname(inflictor, classname, sizeof(classname));
+		return strcmp(classname, sName) == 0;
+	}
+	return false;
 }
