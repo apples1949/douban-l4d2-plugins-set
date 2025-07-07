@@ -24,7 +24,7 @@
  */
 
 #pragma semicolon 1
-#pragma dynamic 331072	//增加堆栈空间.
+//#pragma dynamic 331072	//增加堆栈空间.
 //強制1.7以後的新語法
 #pragma newdecls required
 #include <sourcemod>

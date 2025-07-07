@@ -15,7 +15,7 @@
  */
 
 #pragma semicolon 1
-#pragma dynamic 231072	//增加堆栈空间(不知道为什么生还者数量到达26个的时候会出问题,加上这个好像就好了).
+//#pragma dynamic 231072	//增加堆栈空间.
 //強制1.7以後的新語法
 #pragma newdecls required
 #include <sourcemod>
@@ -25,7 +25,7 @@
 #include <l4d2_GetWitchNumber>//自定义女巫编号插件.
 #define REQUIRE_PLUGIN	//标记为可选结束.
 
-#define MAX_SIZE		128	//定义字符串大小.
+#define MAX_SIZE		32	//定义字符串大小.
 #define MAX_ARRAY	 	2048
 #define PLUGIN_VERSION	"1.3.7"
 

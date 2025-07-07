@@ -59,21 +59,31 @@
  *
  *	1:新增配置文件选择使用MySQL数据库版本.
  *
+ *	v2.7.5
+ *
+ *	1:新增管理员菜单删除封禁列表功能.
+ *
  */
 #pragma semicolon 1
 //強制1.7以後的新語法
 #pragma newdecls required
+#pragma dynamic 40960	//增加堆栈空间.
 #include <sourcemod>
+#include <adminmenu>
 
-#define PLUGIN_VERSION	"1.7.5"	//插件的版本.
+#define PLUGIN_VERSION	"2.7.5"	//插件的版本.
 #define MAX_LENGTH		128		//字符串最大值.
 
 Database g_dbSQL;
+
 bool g_bLateLoad;
 bool g_bDatabaseType = false;//设置创建配置文件默认使用的数据库类型,false=Sqlite,true=MySQL.
-char g_skvPath[PLATFORM_MAX_PATH];
+bool g_bButton[MAXPLAYERS+1];
 
-enum struct IsBanned 
+char g_skvPath[PLATFORM_MAX_PATH];
+char g_sPlayerData[5][MAXPLAYERS+1][32];
+
+enum struct esBanned 
 {
 	bool g_bBanStatus;
 	char sBanTime[128];
@@ -81,8 +91,18 @@ enum struct IsBanned
 	char sBanReason[128];
 	char sBanDuration[128];
 }
-IsBanned 
-	g_eBanned[MAXPLAYERS + 1];
+esBanned g_eBanned[MAXPLAYERS + 1];
+
+enum struct esBanList 
+	{
+		char esSteamID[128];
+		char esBanReason[128];
+		int eiBanTime;
+		int eiTimesTamp;
+	}
+
+TopMenu g_hTopMenu;
+TopMenuObject hOtherFeatures = INVALID_TOPMENUOBJECT;
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max) 
 {
@@ -121,6 +141,8 @@ public Plugin myinfo =
 //插件开始时.
 public void OnPluginStart() 
 {
+	RegConsoleCmd("sm_banlist", Command_BanList, "封禁列表.");
+	
 	BuildPath(Path_SM, g_skvPath, sizeof(g_skvPath), "configs/l4d2_banned.cfg");
 	IsReadFileValues();
 	
@@ -129,8 +151,66 @@ public void OnPluginStart()
 
 	if (g_bLateLoad)//如果插件是延迟加载.
 		SQL_LoadAll();//读取所有玩家数据.
+
+	TopMenu topmenu;
+	if (LibraryExists("adminmenu") && ((topmenu = GetAdminTopMenu()) != null))
+		OnAdminMenuReady(topmenu);
+}
+//封禁列表.
+public Action Command_BanList(int client, int args)
+{
+	OpenBanListMenu(client, 0, false);
+	return Plugin_Handled;
+}
+public void OnLibraryRemoved(const char[] name)
+{
+	if (StrEqual(name, "adminmenu"))
+		g_hTopMenu = null;
+}
+ 
+public void OnAdminMenuReady(Handle aTopMenu)
+{
+	TopMenu topmenu = TopMenu.FromHandle(aTopMenu);
+
+	if (topmenu == g_hTopMenu)
+		return;
+	
+	g_hTopMenu = topmenu;
+	
+	TopMenuObject hTopMenuObject = FindTopMenuCategory(g_hTopMenu, "OtherFeatures");
+	if (hTopMenuObject == INVALID_TOPMENUOBJECT)
+		hTopMenuObject = AddToTopMenu(g_hTopMenu, "OtherFeatures", TopMenuObject_Category, hMenuHandler, INVALID_TOPMENUOBJECT);
+	
+	hOtherFeatures = AddToTopMenu(g_hTopMenu,"sm_banlist",TopMenuObject_Item, hHandlerMenu, hTopMenuObject,"sm_banlist",ADMFLAG_ROOT);
 }
 
+void hMenuHandler(Handle topmenu, TopMenuAction action, TopMenuObject object_id, int param, char[] buffer, int maxlength)
+{
+	if (action == TopMenuAction_DisplayTitle)
+	{
+		Format(buffer, maxlength, "选择功能:", param);
+	}
+	else if (action == TopMenuAction_DisplayOption)
+	{
+		Format(buffer, maxlength, "其它功能", param);
+	}
+}
+
+void hHandlerMenu(Handle topmenu, TopMenuAction action, TopMenuObject object_id, int param, char[] buffer, int maxlength)
+{
+	if (action == TopMenuAction_DisplayOption)
+	{
+		if (object_id == hOtherFeatures)
+			Format(buffer, maxlength, "封禁列表", param);
+	}
+	else if (action == TopMenuAction_SelectOption)
+	{
+		if (object_id == hOtherFeatures)
+		{
+			OpenBanListMenu(param, 0, true);
+		}
+	}
+}
 void IsReadFileValues()
 {
 	char sDatabaseType[MAX_LENGTH];
@@ -333,10 +413,10 @@ void SQLQueryCallback(Database db, DBResultSet results, const char[] error, Data
 					if(client != 0)
 					{
 						g_eBanned[client].g_bBanStatus = true;
-						strcopy(g_eBanned[client].sBanTime, sizeof(IsBanned::sBanTime), GetDateTime(iTimeStamp));
-						strcopy(g_eBanned[client].sBanReason, sizeof(IsBanned::sBanReason), sBanReason);
-						strcopy(g_eBanned[client].sUnBanTime, sizeof(IsBanned::sUnBanTime), GetDateTime(iTimeStamp + iBanTime * 60));
-						strcopy(g_eBanned[client].sBanDuration, sizeof(IsBanned::sBanDuration), StandardizeTime(iBanTime * 60));
+						strcopy(g_eBanned[client].sBanTime, sizeof(esBanned::sBanTime), GetDateTime(iTimeStamp));
+						strcopy(g_eBanned[client].sBanReason, sizeof(esBanned::sBanReason), sBanReason);
+						strcopy(g_eBanned[client].sUnBanTime, sizeof(esBanned::sUnBanTime), GetDateTime(iTimeStamp + iBanTime * 60));
+						strcopy(g_eBanned[client].sBanDuration, sizeof(esBanned::sBanDuration), StandardizeTime(iBanTime * 60));
 					}
 				}
 			}
@@ -454,6 +534,283 @@ stock char[] StandardizeTime(int iRunTime)
 	}
 	ImplodeStrings(sTime, sizeof(sTime), "", sData, sizeof(sData));//打包字符串.
 	return sData;
+}
+void OpenBanListMenu(int client, int index, bool bButton = false)
+{
+	char sLine[128], sData[32];
+	Menu menu = new Menu(MenuBanListHandler);
+	Format(sLine, sizeof(sLine), "封禁列表:\n ");
+	IntToString(bButton, sData, sizeof(sData));
+	menu.SetTitle("%s", sLine);
+	menu.AddItem(sData, "到期封禁");
+	menu.AddItem(sData, "临时封禁");
+	menu.AddItem(sData, "永久封禁");
+	menu.ExitButton = true;//默认值:true,设置为:false,则不显示退出选项.
+	menu.ExitBackButton = bButton;//菜单首页显示数字8返回上一页选项.
+	menu.DisplayAt(client, index, MENU_TIME_FOREVER);
+}
+
+int MenuBanListHandler(Menu menu, MenuAction action, int client, int itemNum)
+{
+	switch(action)
+	{
+		case MenuAction_Select:
+		{
+			char sItem[128], sName[32];
+			menu.GetItem(itemNum, sItem, sizeof(sItem), _, sName, sizeof(sName));
+			SQL_QueryBanList(client, 0, view_as<bool>(StringToInt(sItem)), itemNum, sName);
+		}
+		case MenuAction_Cancel:
+		{
+			if (itemNum == MenuCancel_ExitBack && g_hTopMenu != null)
+				g_hTopMenu.Display(client, TopMenuPosition_LastCategory);
+		}
+		case MenuAction_End:
+			delete menu;
+	}
+	return 0;
+}
+//查询封禁列表.
+void SQL_QueryBanList(int client, int iIndex, bool bButton, int type, char[] sName)
+{
+	if (!g_dbSQL)
+		return;
+	
+	char query[1024];
+
+	switch(type)
+	{
+		case 0:
+			FormatEx(query, sizeof(query), "SELECT * FROM l4d2_banned WHERE bantime > 0 ORDER BY timestamp DESC;");//到期封禁.
+		case 1:
+			FormatEx(query, sizeof(query), "SELECT * FROM l4d2_banned WHERE bantime > 0 ORDER BY timestamp DESC;");//临时封禁.
+		case 2:
+			FormatEx(query, sizeof(query), "SELECT * FROM l4d2_banned WHERE bantime = 0 ORDER BY timestamp DESC;");//永久封禁.
+		
+		
+	}
+	DataPack hPack = new DataPack();
+	hPack.WriteCell(GetClientUserId(client));
+	hPack.WriteCell(iIndex);
+	hPack.WriteCell(bButton);
+	hPack.WriteCell(type);
+	hPack.WriteString(sName);
+	g_dbSQL.Query(SQL_CallbackAllLoad, query, hPack);
+}
+//查询结果回调.
+void SQL_CallbackAllLoad(Database db, DBResultSet results, const char[] error, DataPack hPack) 
+{
+	int client;
+	hPack.Reset();
+	if (!(client = GetClientOfUserId(hPack.ReadCell())))
+	{
+		delete hPack;
+		return;
+	}
+	if (!db || !results) 
+	{
+		delete hPack;
+		LogError("[错误]%N查询封禁信息时出现错误,原因:%s", client, error);
+		return;
+	}
+	int iIndex = hPack.ReadCell();
+	bool bButton = view_as<bool>(hPack.ReadCell());
+	g_bButton[client] = bButton;
+	int type = hPack.ReadCell();
+	char sName[32];
+	hPack.ReadString(sName, sizeof(sName));
+
+	esBanList banlist;
+	ArrayList ListArray = new ArrayList(sizeof(banlist));
+
+	while (results.FetchRow())
+	{
+		char sSteamID[128];
+		results.FetchString(0, sSteamID, sizeof(sSteamID));
+		char sBanReason[128];
+		results.FetchString(1, sBanReason, sizeof(sBanReason));
+		int iBanTime = results.FetchInt(2);
+		int iTimesTamp = results.FetchInt(3);
+		int iNowTime = GetTime();
+
+		switch(type)
+		{
+			case 0:
+			{
+				if(iBanTime * 60 + iTimesTamp <= iNowTime)
+				{
+					strcopy(banlist.esSteamID, sizeof(esBanList::esSteamID), sSteamID);
+					strcopy(banlist.esBanReason, sizeof(esBanList::esBanReason), sBanReason);
+					banlist.eiBanTime = iBanTime;
+					banlist.eiTimesTamp = iTimesTamp;
+					ListArray.PushArray(banlist);//推送数据到动态数组末尾.
+				}
+			}
+			case 1:
+			{
+				if(iBanTime * 60 + iTimesTamp > iNowTime)
+				{
+					strcopy(banlist.esSteamID, sizeof(esBanList::esSteamID), sSteamID);
+					strcopy(banlist.esBanReason, sizeof(esBanList::esBanReason), sBanReason);
+					banlist.eiBanTime = iBanTime;
+					banlist.eiTimesTamp = iTimesTamp;
+					ListArray.PushArray(banlist);//推送数据到动态数组末尾.
+				}
+			}
+			case 2:
+			{
+				strcopy(banlist.esSteamID, sizeof(esBanList::esSteamID), sSteamID);
+				strcopy(banlist.esBanReason, sizeof(esBanList::esBanReason), sBanReason);
+				banlist.eiBanTime = iBanTime;
+				banlist.eiTimesTamp = iTimesTamp;
+				ListArray.PushArray(banlist);//推送数据到动态数组末尾.
+			}
+		}
+	}
+	delete hPack;
+	DisplayBanListMenu(client, iIndex, bButton, type, ListArray, sName);
+}
+void DisplayBanListMenu(int client, int iIndex, bool bButton, int type, ArrayList ListArray, char[] sName)
+{
+	if(ListArray.Length == 0)
+	{
+		delete ListArray;
+		PrintToChat(client, "\x04[提示]\x05没有查询到\x03%s\x05.", sName);
+		OpenBanListMenu(client, 0, bButton);
+		return;
+	}
+
+	esBanList banlist;
+	char sLine[128], sData[256], sInfo[8][128];
+	Menu menu = new Menu(MenuDisplayBanListHandler);
+	Format(sLine, sizeof(sLine), "%s:\n ", sName);
+	menu.SetTitle("%s", sLine);
+
+	for (int i = 0; i < ListArray.Length; i++)
+	{
+		ListArray.GetArray(i, banlist);
+
+		Format(sInfo[0], sizeof(sInfo[]), "%s", banlist.esSteamID);
+		Format(sInfo[1], sizeof(sInfo[]), "%s", banlist.esBanReason);
+		Format(sInfo[2], sizeof(sInfo[]), "%d", banlist.eiBanTime);
+		Format(sInfo[3], sizeof(sInfo[]), "%d", banlist.eiTimesTamp);
+		Format(sInfo[4], sizeof(sInfo[]), "%d", bButton);
+		Format(sInfo[5], sizeof(sInfo[]), "%d", iIndex);
+		Format(sInfo[6], sizeof(sInfo[]), "%s", sName);
+		Format(sInfo[7], sizeof(sInfo[]), "%d", type);
+		ImplodeStrings(sInfo, sizeof(sInfo), "|", sData, sizeof(sData));//打包字符串.
+
+		switch(type)
+		{
+			case 0:
+				Format(sLine, sizeof(sLine), "解封:(%s),玩家:(%s)", GetDateTime(StringToInt(sInfo[2]) * 60 + StringToInt(sInfo[3])), sInfo[0]);
+			case 1:
+				Format(sLine, sizeof(sLine), "玩家:(%s),剩余:(%s)", sInfo[0], StandardizeTime(StringToInt(sInfo[2]) * 60 - (GetTime() - StringToInt(sInfo[3]))));
+			case 2:
+				Format(sLine, sizeof(sLine), "封禁:(%s),玩家:(%s)", GetDateTime(StringToInt(sInfo[3])), sInfo[0]);
+		}
+		menu.AddItem(sData, sLine);
+	}
+	menu.ExitButton = true;//默认值:true,设置为:false,则不显示退出选项.
+	menu.ExitBackButton = true;//菜单首页显示数字8返回上一页选项.
+	menu.DisplayAt(client, iIndex, MENU_TIME_FOREVER);
+	delete ListArray;
+}
+//菜单回调.
+int MenuDisplayBanListHandler(Menu menu, MenuAction action, int client, int itemNum)
+{
+	switch(action)
+	{
+		case MenuAction_End:
+			delete menu;
+		case MenuAction_Select:
+		{
+			char sItem[256], sName[128];
+			menu.GetItem(itemNum, sItem, sizeof(sItem), _, sName, sizeof(sName));
+			OpenDeleteBanDataMenu(client, sItem, menu.Selection);
+		}
+		case MenuAction_Cancel:
+			if (itemNum == MenuCancel_ExitBack)
+				OpenBanListMenu(client, 0, g_bButton[client]);
+	}
+	return 0;
+}
+void OpenDeleteBanDataMenu(int client, char[] sItem, int iIndex)
+{
+	int iNowTime = GetTime();
+	char sLine[128], sInfo[8][128];
+	ExplodeString(sItem, "|", sInfo, sizeof(sInfo), sizeof(sInfo[]));//拆分字符串.
+
+	Format(g_sPlayerData[0][client], sizeof(g_sPlayerData[][]), "%s", sInfo[0]);
+	Format(g_sPlayerData[1][client], sizeof(g_sPlayerData[][]), "%s", sInfo[4]);
+	Format(g_sPlayerData[2][client], sizeof(g_sPlayerData[][]), "%d", iIndex);
+	Format(g_sPlayerData[3][client], sizeof(g_sPlayerData[][]), "%s", sInfo[6]);
+	Format(g_sPlayerData[4][client], sizeof(g_sPlayerData[][]), "%s", sInfo[7]);
+
+	int time = StringToInt(sInfo[2]) * 60 - (iNowTime - StringToInt(sInfo[3]));
+	Panel panel = new Panel();
+
+	Format(sLine, sizeof(sLine), "封禁类型:(%s)", StringToInt(sInfo[2]) == 0 ? "永封" : time <= iNowTime ? "临封" : "解封");
+	panel.SetTitle(sLine);
+	Format(sLine, sizeof(sLine), "剩余时长:(%s)", StringToInt(sInfo[2]) == 0 ? "永封" : StringToInt(sInfo[2]) * 60 + StringToInt(sInfo[3]) > iNowTime ? StandardizeTime(time) : "解封");
+	panel.DrawItem(sLine, ITEMDRAW_DISABLED|ITEMDRAW_RAWLINE);
+	Format(sLine, sizeof(sLine), "封禁时长:(%s)", StringToInt(sInfo[2]) == 0 ? "永久封禁" : StandardizeTime(StringToInt(sInfo[2]) * 60));
+	panel.DrawItem(sLine, ITEMDRAW_DISABLED|ITEMDRAW_RAWLINE);
+	Format(sLine, sizeof(sLine), "解封时间:(%s)", StringToInt(sInfo[2]) == 0 ? "永久封禁" : time > iNowTime ? StandardizeTime(time) : GetDateTime(StringToInt(sInfo[2]) * 60 + StringToInt(sInfo[3])));
+	panel.DrawItem(sLine, ITEMDRAW_DISABLED|ITEMDRAW_RAWLINE);
+	Format(sLine, sizeof(sLine), "封禁时间:(%s)", GetDateTime(StringToInt(sInfo[3])));
+	panel.DrawItem(sLine, ITEMDRAW_DISABLED|ITEMDRAW_RAWLINE);
+	Format(sLine, sizeof(sLine), "玩家名称:(%s)", sInfo[0]);
+	panel.DrawItem(sLine, ITEMDRAW_DISABLED|ITEMDRAW_RAWLINE);
+	Format(sLine, sizeof(sLine), "封禁原因:(%s)", sInfo[1]);
+	panel.DrawItem(sLine, ITEMDRAW_DISABLED|ITEMDRAW_RAWLINE);
+
+	panel.DrawText(" \n");
+	panel.DrawItem("删除");
+	panel.DrawItem(" ", ITEMDRAW_SPACER);
+	panel.DrawItem(" ", ITEMDRAW_SPACER);
+	panel.DrawItem(" ", ITEMDRAW_SPACER);
+	panel.DrawItem(" ", ITEMDRAW_SPACER);
+	panel.DrawItem(" ", ITEMDRAW_SPACER);
+	panel.DrawItem(" ", ITEMDRAW_SPACER);
+	panel.DrawItem("返回");
+		
+	panel.DrawText(" \n");
+	panel.DrawItem("0. 退出", ITEMDRAW_DISABLED|ITEMDRAW_RAWLINE);
+	panel.Send(client, MenuDeleteBanDataHandler, MENU_TIME_FOREVER);
+}
+//菜单回调.
+int MenuDeleteBanDataHandler(Menu menu, MenuAction action, int client, int itemNum)
+{
+	switch(action)
+	{
+		case MenuAction_End:
+			delete menu;
+		case MenuAction_Select:
+		{
+			switch(itemNum)
+			{
+				case 1:
+					SQL_DeleteBanData(client, g_sPlayerData[0][client]);
+				case 8:
+					SQL_QueryBanList(client, StringToInt(g_sPlayerData[2][client]), view_as<bool>(StringToInt(g_sPlayerData[1][client])), StringToInt(g_sPlayerData[4][client]), g_sPlayerData[3][client]);//重新打开菜单.
+			}
+		}
+	}
+	return 0;
+}
+//删除指定的密钥数据.
+stock void SQL_DeleteBanData(int client, const char[] sSteamID) 
+{
+	char query[1024];
+	FormatEx(query, sizeof query, "DELETE FROM l4d2_banned WHERE SteamID = '%s';", sSteamID);
+	g_dbSQL.Query(SQL_CallbackBanData, query, GetClientUserId(client));
+}
+//删除数据回调.
+void SQL_CallbackBanData(Database db, DBResultSet results, const char[] error, any client) 
+{
+	if ((client = GetClientOfUserId(client)))
+		SQL_QueryBanList(client, StringToInt(g_sPlayerData[2][client]), view_as<bool>(StringToInt(g_sPlayerData[1][client])), StringToInt(g_sPlayerData[4][client]), g_sPlayerData[3][client]);//重新打开菜单.
 }
 //监听封禁函数.
 public Action OnBanClient(int client, int time, int flags, const char[] reason, const char[] kick_message, const char[] command, any source)

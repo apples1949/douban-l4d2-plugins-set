@@ -10,13 +10,13 @@
  *
  */
 #pragma semicolon 1
-#pragma dynamic 231072	//增加堆栈空间(不知道为什么生还者数量到达26个的时候会出问题,加上这个好像就好了).
+//#pragma dynamic 231072	//增加堆栈空间.
 //強制1.7以後的新語法
 #pragma newdecls required
 #include <sourcemod>
 #include <sdkhooks>
 
-#define MAX_SIZE		128	//定义字符串大小.
+#define MAX_SIZE		32	//定义字符串大小.
 #define PLUGIN_VERSION	"1.5.9"
 
 bool g_bLateLoad;
@@ -121,7 +121,7 @@ public void Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast)
 				int iBot = IsClientIdle(attacker);
 				g_iTankHurt[client] = GetClientHealth(client);//记录坦克剩余的血量.
 				g_iSurvivorTankHurt[!g_iTankIdle ? attacker : !iBot ? attacker : iBot][client] += iDmg;
-				//PrintToChat(!iBot ? attacker : iBot, "\x04[提示]\x05当前\x03%N\x05受到了\x04:\x03%d\x05点伤害,总计受到了\x04:\x03%.0f点伤害,总血量\x04:\x03%d.", client, iDmg, g_iSurvivorTankHurt[!iBot ? attacker : iBot][client], eventhealth);
+				//PrintToChat(!iBot ? attacker : iBot, "\x04[提示]\x05当前\x03%N\x05受到了\x04:\x03%d\x05点伤害,总计受到了\x04:\x03%.0f点伤害,总血量\x04:\x03%d.", client, iDmg, g_iSurvivorTankHurt[!iBot ? attacker : iBot][client], g_iTankHP[client]);
 			}
 		}
 	}

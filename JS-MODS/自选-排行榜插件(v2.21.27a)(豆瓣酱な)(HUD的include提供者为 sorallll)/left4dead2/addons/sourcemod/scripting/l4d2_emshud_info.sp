@@ -1,7 +1,7 @@
 #pragma semicolon 1
 //強制1.7以後的新語法
 #pragma newdecls required
-#pragma dynamic 331072	//增加堆栈空间.
+#pragma dynamic 12288	//增加堆栈空间.
 #include <sourcemod>
 #include <dhooks>
 #include <left4dhooks>

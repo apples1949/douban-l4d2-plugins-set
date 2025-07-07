@@ -12,16 +12,29 @@
  *	1:设置伤害阻止原始伤害改成直接更改伤害.
  *	2:判断火焰伤害类型从伤害类型更改为类名方法.
  *
+ * v1.2.5
+ *
+ *	1:才发现改成实体类名后火焰伤害类名用两个.
+ *	2:此SDK钩子不能使用Plugin_Changed方式更改坦克火焰伤害,改回SDKHooks_TakeDamage设置伤害并阻止Plugin_Handled原始伤害.
+ *
+ * v1.2.6
+ *
+ *	1:换成判断火焰类名后,伤害为0的时候也设置了伤害导致无限递归插件报错.
+ *
  */
 #pragma semicolon 1
 //強制1.7以後的新語法
 #pragma newdecls required
+//#pragma dynamic 1024	//增加堆栈空间.
 //加载include库.
 #include <sourcemod>
 #include <sdkhooks>
 #include <sdktools>
 //定义插件版本.
-#define PLUGIN_VERSION "1.2.4"
+#define PLUGIN_VERSION "1.2.6"
+
+#define DMG_FIRE	2056
+#define DMG_ONFIRE	268435464
 
 bool g_bLateLoad;
 
@@ -57,15 +70,15 @@ public void OnPluginStart()
 
 public void ConVarChanged(ConVar convar, const char[] oldValue, const char[] newValue)
 {
-	IsTankDamage();
+	ChangedTankDamage();
 }
 
 public void OnMapStart()
 {
-	IsTankDamage();
+	ChangedTankDamage();
 }
 
-void IsTankDamage()
+void ChangedTankDamage()
 {
 	g_iTankDamage = g_hTankDamage.IntValue;
 }
@@ -80,9 +93,15 @@ public Action OnTakeDamageAlive(int client, int &attacker, int &inflictor, float
 	if(g_iTankDamage < 0)
 		return Plugin_Continue;
 
-	if(IsValidClient(client) && IsValidTank(client))
+	if(damage <= 0)
+		return Plugin_Continue;
+
+	if(g_iTankDamage > 0 && damage <= g_iTankDamage)
+		return Plugin_Continue;
+
+	if(IsValidClient(client) && IsValidTank(client) && IsPlayerState(client))
 	{	
-		if(IsInflictor(inflictor, "inferno"))//火焰类.
+		if(IsInflictor(inflictor, "inferno") || IsInflictor(inflictor, "entityflame"))//火焰类.
 		{
 			if(g_iTankDamage == 0)
 			{
@@ -95,16 +114,14 @@ public Action OnTakeDamageAlive(int client, int &attacker, int &inflictor, float
 					if(IsValidEntity(entity))
 						RemoveEntity(entity);
 				}
-				
-				damage = 0.0;
-				return Plugin_Changed;//更改原始伤害.
+				return Plugin_Handled;//阻止伤害(这里不能用Plugin_Changed).
 			}
 			else
 			{
 				if (GetClientHealth(client) > g_iTankDamage)
 				{
-					damage = float(g_iTankDamage);
-					return Plugin_Changed;//更改原始伤害.
+					SDKHooks_TakeDamage(client, inflictor, attacker, float(g_iTankDamage));//设置指定的伤害.
+					return Plugin_Handled;//阻止伤害(这里不能用Plugin_Changed).
 				}
 			}
 		}
@@ -131,4 +148,9 @@ stock bool IsInflictor(int inflictor, char[] sName)
 		return strcmp(classname, sName) == 0;
 	}
 	return false;
+}
+//正常状态.
+stock bool IsPlayerState(int client)
+{
+	return !GetEntProp(client, Prop_Send, "m_isIncapacitated") && !GetEntProp(client, Prop_Send, "m_isHangingFromLedge");
 }

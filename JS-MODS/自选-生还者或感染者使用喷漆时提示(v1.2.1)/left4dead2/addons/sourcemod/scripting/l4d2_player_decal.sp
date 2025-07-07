@@ -11,6 +11,10 @@
  *
  *	1:新增设置允许生还者团队或感染者团队使用喷漆,或者直接禁止使用喷漆.
  *
+ *	v1.2.1
+ *
+ *	1:新增禁用喷漆使用提示.
+ *
  */
 
 #pragma semicolon 1
@@ -19,7 +23,7 @@
 #include <sourcemod>
 #include <sdktools>
 
-#define PLUGIN_VERSION	"1.1.1"
+#define PLUGIN_VERSION	"1.2.1"
 #define CVAR_FLAGS		FCVAR_NOTIFY
 
 static const char g_sSurvivorNames[][] = 
@@ -61,8 +65,8 @@ static const char g_sZombieName[][] =
 #define SURVIVOR	(1 << 0)
 #define INFESTOR	(1 << 1)
 
-int    g_iPlayerDecal;
-ConVar g_hPlayerDecal;
+int    g_iPlayerChat, g_iPlayerDecal;
+ConVar g_hPlayerChat, g_hPlayerDecal;
 
 public Plugin myinfo = 
 {
@@ -77,7 +81,9 @@ public void OnPluginStart()
 {
 	AddTempEntHook("Player Decal", PlayerDecal);
 
+	g_hPlayerChat = CreateConVar("l4d2_player_chat", "3", "允许什么团队显示使用提示? 0=禁用, 1=生还者, 2=感染者, 3=两者皆可.", CVAR_FLAGS);
 	g_hPlayerDecal = CreateConVar("l4d2_player_decal", "3", "允许什么团队可以使用喷漆? 0=禁用, 1=生还者, 2=感染者, 3=两者皆可.", CVAR_FLAGS);
+	g_hPlayerChat.AddChangeHook(ConVarChanged);
 	g_hPlayerDecal.AddChangeHook(ConVarChanged);
 	AutoExecConfig(true, "l4d2_player_decal");//生成指定文件名的CFG.
 }
@@ -94,6 +100,7 @@ public void ConVarChanged(ConVar convar, const char[] oldValue, const char[] new
 
 void GetCvars()
 {
+	g_iPlayerChat = g_hPlayerChat.IntValue;
 	g_iPlayerDecal = g_hPlayerDecal.IntValue;
 }
 
@@ -112,24 +119,17 @@ public Action PlayerDecal(const char[] te_name, const int[] Players, int numClie
 		{
 			case 2:
 			{
-				if(g_iPlayerDecal & SURVIVOR)
-				{
+				if(g_iPlayerChat & SURVIVOR)
 					PrintToChatAll("\x04[提示]\x03%s(%s)\x05使用了喷漆.", GetPlayerName(client), GetPlayerModel(client));
+				if(g_iPlayerDecal & SURVIVOR)
 					return Plugin_Continue;
-				}
 			}
 			case 3:
 			{
-				if(g_iPlayerDecal & INFESTOR)
-				{
+				if(g_iPlayerChat & INFESTOR)
 					PrintToChatAll("\x04[提示]\x03%s(%s)\x05使用了喷漆.", GetPlayerName(client), g_sZombieName[GetEntProp(client, Prop_Send, "m_zombieClass") - 1]);
+				if(g_iPlayerDecal & INFESTOR)
 					return Plugin_Continue;
-				}
-			}
-			default:
-			{
-				PrintToChatAll("\x04[提示]\x03%s\x05使用了喷漆.", GetPlayerName(client));
-				return Plugin_Continue;
 			}
 		}
 	}
