@@ -9,6 +9,10 @@
  *
  *	1:更改设置投票同意和反对为官方方法.
  *
+ *	v1.4.5
+ *
+ *	1:更改设置投票同意和反对为官方方法.
+ *
  */
 #pragma semicolon 1
 #pragma newdecls required
@@ -18,7 +22,7 @@
 #define REQUIRE_PLUGIN	//标记为可选结束.
 #include <l4d2_nativevote>			// https://github.com/fdxx/l4d2_nativevote
 
-#define PLUGIN_VERSION "1.3.5"
+#define PLUGIN_VERSION "1.4.5"
 
 bool g_bLibraries;
 Handle g_hChangelevel;
@@ -27,12 +31,12 @@ char g_sGameDifficulty[][][] =
 {
 	{"简单", "Easy"}, 
 	{"普通", "Normal"}, 
-	{"高级", "Hard"}/*, 
-	{"专家", "Impossible"}*/
+	{"高级", "Hard"}, 
+	{"专家", "Impossible"}
 };
 
-int    g_iBanTime, g_iPercent, g_iMenuTime;
-ConVar g_hBanTime, g_hPercent, g_hMenuTime;
+int    g_iBanTime, g_iPercent, g_iMenuTime, g_iDifficulty;
+ConVar g_hBanTime, g_hPercent, g_hMenuTime, g_hDifficulty;
 
 public Plugin myinfo =  
 {
@@ -68,9 +72,11 @@ public void OnPluginStart()
 	g_hBanTime = CreateConVar("l4d2_vote_BanTime", "5", "设置被投票踢出玩家的封禁时间/分钟. -1=仅踢出, 0=永久封禁.", FCVAR_NOTIFY);
 	g_hPercent = CreateConVar("l4d2_vote_Percent", "60", "设置通过投票所需的百分比(1/100).", FCVAR_NOTIFY);
 	g_hMenuTime = CreateConVar("l4d2_vote_menuTime", "25", "设置同意或反对菜单的显示时间/秒.", FCVAR_NOTIFY);
+	g_hDifficulty = CreateConVar("l4d2_vote_difficulty", "15", "启用投票更改难度(把需要启用的数字加起来). 0=禁用, 1=简单, 2=普通, 4=高级, 8=专家, 15=全部.", FCVAR_NOTIFY);
 	g_hBanTime.AddChangeHook(CvarChanged);
 	g_hPercent.AddChangeHook(CvarChanged);
 	g_hMenuTime.AddChangeHook(CvarChanged);
+	g_hDifficulty.AddChangeHook(CvarChanged);
 
 	AutoExecConfig(true, "l4d2_menu_vote");
 }
@@ -85,6 +91,7 @@ void GetCvars()
 	g_iBanTime = g_hBanTime.IntValue;
 	g_iPercent = g_hPercent.IntValue;
 	g_iMenuTime = g_hMenuTime.IntValue;
+	g_iDifficulty = g_hDifficulty.IntValue;
 
 	if (g_iPercent < 1)
 		g_iPercent = 1;
@@ -131,7 +138,8 @@ void IsChooseFunction(int client)
 	Menu menu = new Menu(Menu_HandlerFunction);
 	FormatEx(line, sizeof(line), "投票菜单:");
 	SetMenuTitle(menu, "%s", line);
-	menu.AddItem("0", "更改难度");
+	if (g_iDifficulty > 0)
+		menu.AddItem("0", "更改难度");
 	menu.AddItem("1", "重启章节");
 	menu.AddItem("2", "踢出玩家");
 	menu.ExitButton = true;//默认值:true,设置为:false,则不显示退出选项.
@@ -178,6 +186,12 @@ void MenuVoteChangeDifficulty(int client, char[] g_sItem)
 		IsChooseFunction(client);
 		return;
 	}
+	if (g_iDifficulty <= 0)
+	{
+		IsChooseFunction(client);
+		ReplyToCommand(client, "\x04[提示]\x05难度投票功能未开启.");
+		return;
+	}
 	char line[32], sInfo[32], sData[3][32];
 	Menu menu = new Menu(Menu_HandlerDifficulty);
 	FormatEx(line, sizeof(line), "选择难度:");
@@ -186,12 +200,15 @@ void MenuVoteChangeDifficulty(int client, char[] g_sItem)
 	{
 		if (strcmp(GetDifficulty(), g_sGameDifficulty[i][1]) == 0)//不显示当前难度.
 			continue;
-
-		strcopy(sData[0], sizeof(sData[]), g_sItem);
-		strcopy(sData[1], sizeof(sData[]), g_sGameDifficulty[i][1]);
-		strcopy(sData[2], sizeof(sData[]), g_sGameDifficulty[i][0]);
-		ImplodeStrings(sData, sizeof(sData), "|", sInfo, sizeof(sInfo));//打包字符串.
-		menu.AddItem(sInfo, g_sGameDifficulty[i][0]);
+		
+		if(g_iDifficulty & (1 << i))
+		{
+			strcopy(sData[0], sizeof(sData[]), g_sItem);
+			strcopy(sData[1], sizeof(sData[]), g_sGameDifficulty[i][1]);
+			strcopy(sData[2], sizeof(sData[]), g_sGameDifficulty[i][0]);
+			ImplodeStrings(sData, sizeof(sData), "|", sInfo, sizeof(sInfo));//打包字符串.
+			menu.AddItem(sInfo, g_sGameDifficulty[i][0]);
+		}
 	}
 	menu.ExitButton = true;//默认值:true,设置为:false,则不显示退出选项.
 	menu.ExitBackButton = true;

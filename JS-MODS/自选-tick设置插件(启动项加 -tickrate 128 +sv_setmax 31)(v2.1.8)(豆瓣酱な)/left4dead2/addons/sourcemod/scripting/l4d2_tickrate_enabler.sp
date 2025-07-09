@@ -16,13 +16,17 @@
  *
  *	1:修复nb_update_frequency参数自动设置错误的问题(手抖多按了个0).
  *
+ *	v2.1.8
+ *
+ *	1:好家伙,上一个版本的问题源码改了没编译替换.
+ *
  *
  */
 #pragma semicolon 1
 #pragma newdecls required
 #include <sourcemod>
 
-#define PLUGIN_VERSION	"2.1.7"
+#define PLUGIN_VERSION	"2.1.8"
 #define CVAR_FLAGS		FCVAR_NOTIFY
 
 char g_sWrite[][][] = 
