@@ -21,6 +21,10 @@
  *	1:精简一些无用代码.
  *	2:适配官方虚血模式.
  *
+ *	v1.2.4
+ *
+ *	1新增修复某些情况下禁止打包.
+ *
  */
 #pragma semicolon 1
 //強制1.7以後的新語法
@@ -31,7 +35,7 @@
 
 #define DEBUG		0		//0=禁用调试信息,1=显示调试信息.
 #define GAMEDATA			"l4d2_max_health"
-#define PLUGIN_VERSION		"1.1.4"
+#define PLUGIN_VERSION		"1.2.4"
 
 ConVar 
 	g_hSurvivorMaxHeal,
@@ -114,6 +118,9 @@ void LoadingGameData()
 
 	CreateDetour(hGameData,	OnTransitionRestore_Pre,	"CTerrorPlayer::TransitionRestore", false);
 	CreateDetour(hGameData,	OnTransitionRestore_Post,	"CTerrorPlayer::TransitionRestore", true);
+
+	CreateDetour(hGameData, MedStartAct_Pre,	"CFirstAidKit::ShouldStartAction",	false);
+	//CreateDetour(hGameData, MedStartAct_Post,	"CFirstAidKit::ShouldStartAction",	true);
 
 	delete hGameData;
 }
@@ -411,6 +418,113 @@ MRESReturn OnTakeOverBot_Post(int pThis, DHookReturn hReturn, DHookParam hParams
 		#endif
 	}
 	return MRES_Ignored;
+}
+MRESReturn MedStartAct_Pre(Handle hReturn, Handle hParams)
+{
+	//int client = DHookGetParam(hParams, 2);
+	int target = DHookGetParam(hParams, 3);
+	if( target > MaxClients || GetClientTeam(target) != 2 )	// Because shoving common infected or specials triggers this function
+		return MRES_Ignored;
+	
+	if(!IsSurvivorsHealingStatus(target))
+	{
+		DHookSetReturn(hReturn, 0);
+		#if DEBUG
+		PrintToChatAll("\x04[治疗Pre]\x05(%N)阻止打包3.", target);
+		#endif
+		return MRES_Supercede;
+	}
+	if(!IsSurvivorsHealthStatus(target))
+	{
+		#if DEBUG
+		PrintToChatAll("\x04[治疗Pre]\x05(%N)无需打包4.", target);
+		#endif
+		return MRES_Ignored;
+	}
+	return MRES_Ignored;
+}
+//判断生还者是否需要被治疗.
+stock bool IsSurvivorsHealingStatus(int client)
+{
+	int iHealth = GetEntProp(client, Prop_Data, "m_iHealth");
+	int iMaxHealth = GetEntProp(client, Prop_Data, "m_iMaxHealth");
+	
+	int   iFirstAidKitMaxHeal 	= GetConVarInt(FindConVar("first_aid_kit_max_heal"));//最大血量上限.
+	float fFirstAidHealPercent 	= GetConVarFloat(FindConVar("first_aid_heal_percent"));//医疗包恢复比例.
+
+	if (iFirstAidKitMaxHeal > iMaxHealth)
+	{
+		if (iHealth >= iMaxHealth)
+		{
+			#if DEBUG
+			PrintToChatAll("\x04[治疗Pre]\x05(%N)(%d)(%d)(%d)血量大于上限(无需治疗).", client, iHealth, iMaxHealth, iFirstAidKitMaxHeal);
+			#endif
+			return false;
+		}
+		if (fFirstAidHealPercent < 1.0)
+		{
+			if(iHealth >= iMaxHealth - 1)
+			{
+				#if DEBUG
+				PrintToChatAll("\x04[治疗Pre]\x05(%N)(%d)(%d)(%d)血量比例上限(无需治疗)(比例值<1).", client, iHealth, iMaxHealth, iFirstAidKitMaxHeal);
+				#endif
+				return false;
+			}
+		}
+		else
+		{
+			if(iHealth >= iMaxHealth)
+			{
+				#if DEBUG
+				PrintToChatAll("\x04[治疗Pre]\x05(%N)(%d)(%d)(%d)血量比例上限(无需治疗)(比例值=1).", client, iHealth, iMaxHealth, iFirstAidKitMaxHeal);
+				#endif
+				return false;
+			}
+		}
+	}
+	
+	return true;
+}
+//获取生还者健康状态.
+stock bool IsSurvivorsHealthStatus(int client)
+{
+	int iHealth = GetEntProp(client, Prop_Data, "m_iHealth");
+	int iMaxHealth = GetEntProp(client, Prop_Data, "m_iMaxHealth");
+	
+	int   iFirstAidKitMaxHeal 	= GetConVarInt(FindConVar("first_aid_kit_max_heal"));//最大血量上限.
+	float fFirstAidHealPercent 	= GetConVarFloat(FindConVar("first_aid_heal_percent"));//医疗包恢复比例.
+
+	if (iHealth > iFirstAidKitMaxHeal)
+	{
+		#if DEBUG
+		PrintToChatAll("\x04[治疗Pre]\x05(%N)(%d)(%d)(%d)血量大于上限.", client, iHealth, iMaxHealth, iFirstAidKitMaxHeal);
+		#endif
+		return false;
+	}
+	if (iMaxHealth > iFirstAidKitMaxHeal)
+		iMaxHealth = iFirstAidKitMaxHeal;
+
+	if (fFirstAidHealPercent < 1.0)
+	{
+		if(iHealth >= iMaxHealth - 1)
+		{
+			#if DEBUG
+			PrintToChatAll("\x04[治疗Pre]\x05(%N)(%d)(%d)(%d)血量等于属性上限(比例小于1.0).", client, iHealth, iMaxHealth, iFirstAidKitMaxHeal);
+			#endif
+			return false;
+		}
+	}
+	else
+	{
+		if(iHealth >= iMaxHealth)
+		{
+			#if DEBUG
+			PrintToChatAll("\x04[治疗Pre]\x05(%N)(%d)(%d)(%d)血量等于属性上限(比例等于1.0).", client, iHealth, iMaxHealth, iFirstAidKitMaxHeal);
+			#endif
+			return false;
+		}
+	}
+	return true;
 }
 //返回闲置玩家对应的电脑.
 stock int iGetBotOfIdlePlayer(int client)

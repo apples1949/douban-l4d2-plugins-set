@@ -16,6 +16,10 @@
  *	v2.4.5
  *
  *	1:新增投票更改难度只更改发起者的难度(需要l4d2_simulation.smx插件支持).
+ *
+ *	v2.4.6
+ *
+ *	1:修复BanIdentity()函数里的flags类型填错导致的函数报错.
  
  *
  */
@@ -28,7 +32,7 @@
 #define REQUIRE_PLUGIN		//标记为可选结束.
 #include <l4d2_nativevote>			// https://github.com/fdxx/l4d2_nativevote
 
-#define PLUGIN_VERSION "2.4.5"
+#define PLUGIN_VERSION "2.4.6"
 
 bool g_bLibraries[2];
 Handle g_hChangelevel;
@@ -563,7 +567,7 @@ void Menu_HandlerGetVotes(L4D2NativeVote vote, VoteAction action, int param1, in
 						}
 						else
 							if (g_iBanTime > -1)
-								BanIdentity(sInfo[2], g_iBanTime, BANFLAG_AUTO, g_sBanTime, "sm_ban", client);
+								BanIdentity(sInfo[2], g_iBanTime, BANFLAG_AUTHID, g_sBanTime, "sm_ban", client);
 						
 						PrintToChatAll("\x04[提示]\x05投票通过\x04.\x05玩家\x03%s\x05已被踢出.\x04(\x05同意\x03%d%%\x05总共\x03%i\x05票\x04)\x05.", sInfo[1], iPercent, vote.YesCount + vote.NoCount);
 					}

@@ -81,6 +81,29 @@
 				"return"		"int"
 				"this"			"entity"
 			}
+
+			"CFirstAidKit::ShouldStartAction"
+			{
+				"signature"		"CFirstAidKit::ShouldStartAction"
+				"callconv"		"thiscall"
+				"return"		"int"
+				"this"			"ignore"
+				"arguments"
+				{
+					"actionType"
+					{
+						"type"	"int"
+					}
+					"client"
+					{
+						"type"	"cbaseentity"
+					}
+					"target"
+					{
+						"type"	"cbaseentity"
+					}
+				}
+			}
 		}
 
 		"Signatures"
@@ -149,6 +172,18 @@
 				"linux"		"@_ZN13CTerrorPlayer17TransitionRestoreEv"
 				"windows"	"\x2A\x2A\x2A\x2A\x2A\x2A\x2A\x80\xBE\x2A\x2A\x2A\x2A\x2A\x75\x2A\x33\x2A\x5E\x8B\x2A\x5D\xC3"
 				/* ? ? ? ? ? ? ? 80 BE ? ? ? ? ? 75 ? 33 ? 5E 8B ? 5D C3 */
+			}
+
+			/*
+			 *	CFirstAidKit::ShouldStartAction(CBaseBackpackItem::BackpackItemActionType,CTerrorPlayer *,CBaseEntity *)
+			 */
+			"CFirstAidKit::ShouldStartAction"
+			{
+				"library"	"server"
+				"linux"		"@_ZN12CFirstAidKit17ShouldStartActionEN17CBaseBackpackItem22BackpackItemActionTypeEP13CTerrorPlayerP11CBaseEntity"
+				"windows"	"\x2A\x2A\x2A\x2A\x2A\x2A\x2A\x8B\x2A\x8B\x90\x2A\x2A\x2A\x2A\x57\x8B\x2A\x8B\x2A\xFF\x2A\x84\x2A\x75\x2A\x5F"
+				/* ? ? ? ? ? ? ? 8B ? 8B 90 ? ? ? ? 57 8B ? 8B ? FF ? 84 ? 75 ? 5F */
+				/* Search: https://github.com/Psykotikism/L4D1-2_Signatures/blob/main/l4d2/gamedata/l4d2_signatures.txt#L1630 */
 			}
 		}
     }
