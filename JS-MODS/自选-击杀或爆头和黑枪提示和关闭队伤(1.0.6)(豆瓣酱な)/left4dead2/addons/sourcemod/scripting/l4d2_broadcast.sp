@@ -24,6 +24,10 @@
  *
  *	1:优化部分代码,重写友伤cvar说明.
  *
+ *	v1.0.6
+ *
+ *	1:修复插件报错的问题(过关后加载慢的玩家也是闲置状态,这个情况玩家不在游戏中函数会报错).
+ *
  */
 #pragma semicolon 1
 //強制1.7以後的新語法
@@ -32,7 +36,7 @@
 #include <sdkhooks>
 
 //定义插件版本.
-#define PLUGIN_VERSION	"1.0.5"
+#define PLUGIN_VERSION	"1.0.6"
 //榴弹发射器伤害(有燃烧火高爆弹药时).
 #define	DMG_OTHER		(1 << 30)
 
@@ -177,8 +181,20 @@ public void Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast)
 						iBot[1] = IsClientIdle(attacker);
 						g_bPlayerHurt[attacker][client] = false;
 						int iHitGroup = GetEventInt(event, "hitgroup");
-						PrintToChat(iBot[0] != 0 ? iBot[0] : client, "\x04[提示]\x03%s\x05攻击了你\x04%s\x04.", GetTrueName(attacker), g_sHitName[iHitGroup]);
-						PrintToChat(iBot[1] != 0 ? iBot[1] : attacker, "\x04[提示]\x05你攻击了\x03%s\x04%s\x04.", GetTrueName(client), g_sHitName[iHitGroup]);
+						if (iBot[0] != 0)
+						{
+							if (IsValidClient(iBot[0]))
+								PrintToChat(iBot[0], "\x04[提示]\x03%s\x05攻击了你\x04%s\x04.", GetTrueName(attacker), g_sHitName[iHitGroup]);
+						}
+						else
+							PrintToChat(client, "\x04[提示]\x03%s\x05攻击了你\x04%s\x04.", GetTrueName(attacker), g_sHitName[iHitGroup]);
+						if (iBot[1] != 0)
+						{
+							if (IsValidClient(iBot[1]))
+								PrintToChat(iBot[1], "\x04[提示]\x05你攻击了\x03%s\x04%s\x04.", GetTrueName(client), g_sHitName[iHitGroup]);
+						}
+						else
+							PrintToChat(attacker, "\x04[提示]\x05你攻击了\x03%s\x04%s\x04.", GetTrueName(client), g_sHitName[iHitGroup]);
 					}
 				}
 			}
@@ -271,6 +287,7 @@ stock bool IsValidClient(int client)
 {
 	return client > 0 && client <= MaxClients && IsClientInGame(client);
 }
+//获取玩家名称.
 stock char[] GetTrueName(int client)
 {
 	char g_sName[32];
