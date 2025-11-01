@@ -26,6 +26,10 @@
  *	
  *	1:补充了一些动画序列号.
  *
+ * v1.9.13
+ *	
+ *	1:修复管理员菜单更改其它玩家角色时的一些问题和报错.
+ *
  */
 #pragma semicolon 1
 #pragma newdecls required
@@ -38,7 +42,7 @@
 #define PLUGIN_NAME				"Survivor Chat Select"
 #define PLUGIN_AUTHOR			"DeatChaos25, Mi123456 & Merudo, Lux, SilverShot"
 #define PLUGIN_DESCRIPTION		"Select a survivor character by typing their name into the chat."
-#define PLUGIN_VERSION			"1.9.12"
+#define PLUGIN_VERSION			"1.9.13"
 #define PLUGIN_URL				"https://forums.alliedmods.net/showthread.php?p=2399163#post2399163"
 
 #define GAMEDATA				"survivor_chat_select"
@@ -244,7 +248,7 @@ void hHandlerMenu(Handle topmenu, TopMenuAction action, TopMenuObject object_id,
 	if (action == TopMenuAction_DisplayOption)
 	{
 		if (object_id == hOtherFeatures)
-			Format(buffer, maxlength, "更改模型", param);
+			Format(buffer, maxlength, "更改角色", param);
 	}
 	else if (action == TopMenuAction_SelectOption)
 	{
@@ -395,10 +399,10 @@ int Csm_MenuHandler(Menu menu, MenuAction action, int client, int param2) {
 }
 
 bool CanUse(int client, int victim, int index, bool checkAdmin = true) {
-	//if (!client || !IsClientInGame(client)) {
-	//	ReplyToCommand(client, "\x04[提示]\x05角色选择菜单仅适用于游戏中的玩家.");
-	//	return false;
-	//}
+	if (!victim || !IsClientInGame(victim)) {
+		PrintToChat(client, "\x04[提示]\x05角色选择菜单仅适用于游戏中的玩家.");
+		return false;
+	}
 
 	if (checkAdmin && !CheckCommandAccess(client, "", g_iAdminFlags)) {
 		PrintToChat(client, "\x04[提示]\x05只有管理员才能使用该菜单.");
@@ -410,13 +414,13 @@ bool CanUse(int client, int victim, int index, bool checkAdmin = true) {
 	//	return false;
 	//}
 
-	if(GetClientTeam(client) == 1 && iGetBotOfIdlePlayer(client) == 0)
-	{
-		PrintToChat(client, "\x04[提示]\x05旁观者无法使用该指令.");
-		return false;
-	}
+	//if(GetClientTeam(client) == 1 && iGetBotOfIdlePlayer(client) == 0)
+	//{
+	//	PrintToChat(client, "\x04[提示]\x05旁观者无法使用该指令.");
+	//	return false;
+	//}
 
-	switch (GetClientTeam(client)) 
+	switch (GetClientTeam(victim)) 
 	{
 		case 1:
 		{
@@ -439,7 +443,7 @@ bool CanUse(int client, int victim, int index, bool checkAdmin = true) {
 				}
 				else if(iModel == index)
 				{
-					//PrintToChat(client, "\x04[提示]\x05选择的角色与当前角色相同.");
+					PrintToChat(client, "\x04[提示]\x05选择的角色与当前角色相同.");
 					return false;
 				}
 
@@ -476,7 +480,7 @@ bool CanUse(int client, int victim, int index, bool checkAdmin = true) {
 			}
 			else if(iModel == index)
 			{
-				//PrintToChat(client, "\x04[提示]\x05选择的角色与当前角色相同.");
+				PrintToChat(client, "\x04[提示]\x05选择的角色与当前角色相同.");
 				return false;
 			}
 			if (L4D_IsPlayerStaggering(victim)) 

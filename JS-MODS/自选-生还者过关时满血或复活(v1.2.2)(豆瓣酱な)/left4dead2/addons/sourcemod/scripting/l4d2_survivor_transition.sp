@@ -1,8 +1,18 @@
+/*
+ *	v1.0.0
+ *
+ *	1:初始版本发布.
+ *
+ *	v1.2.3
+ *
+ *	1:修复倒地开关变量设置成挂边变量.
+ *
+ */
 #pragma semicolon 1
 #pragma newdecls required
 #include <sourcemod>
 #include <sdktools>
-#define PLUGIN_VERSION 	"1.2.2"
+#define PLUGIN_VERSION 	"1.2.3"
 #define NAME_RoundRespawn "CTerrorPlayer::RoundRespawn"
 #define SIG_RoundRespawn_LINUX "@_ZN13CTerrorPlayer12RoundRespawnEv"
 #define SIG_RoundRespawn_WINDOWS "\\x2A\\x2A\\x2A\\x2A\\x2A\\x2A\\x2A\\x2A\\xE8\\x2A\\x2A\\x2A\\x2A\\x84\\x2A\\x75\\x2A\\x8B\\x2A\\xE8\\x2A\\x2A\\x2A\\x2A\\xC6\\x86"
@@ -180,7 +190,7 @@ stock void IsSurvivoHealth(int client)
 	}
 	else if(IsPlayerFallen(client))//倒地状态.
 	{
-		if(g_iHanging > 0)
+		if(g_iGround > 0)
 		{
 			CheatCommand(client, "give", "health");//加满血量.
 			SetSurvivoHealth(client, g_iGround);
