@@ -254,7 +254,7 @@ int Menu_HandlerDifficulty(Menu menu, MenuAction action, int client, int itemNum
 				{
 					strcopy(sInfo[4], sizeof(sInfo[]), auth);
 					ImplodeStrings(sInfo, sizeof(sInfo), "|", sItem, sizeof(sItem));//打包字符串.
-					IsVoteChangeDifficulty(client, sItem, sName);
+					vVoteChangeDifficulty(client, sItem, sName);
 					
 					if(g_bLibraries[1] == false)
 					{
@@ -301,7 +301,7 @@ int Menu_HandlerDifficulty(Menu menu, MenuAction action, int client, int itemNum
 	}
 	return 0;
 }
-void IsVoteChangeDifficulty(int client, char[] sItem, char[] sName)
+void vVoteChangeDifficulty(int client, char[] sItem, char[] sName)
 {
 	L4D2NativeVote vote = L4D2NativeVote(Menu_HandlerGetVotes);
 	vote.Initiator = client;
