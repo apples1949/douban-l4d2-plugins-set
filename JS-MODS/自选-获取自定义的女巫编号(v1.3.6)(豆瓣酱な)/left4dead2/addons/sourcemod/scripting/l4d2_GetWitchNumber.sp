@@ -29,7 +29,6 @@
  *	1:删除了获取爆头和秒杀女巫的API功能,没啥用,主要是感觉写的太烂.
  *
  */
-
 #pragma semicolon 1
 //強制1.7以後的新語法
 #pragma newdecls required
@@ -50,9 +49,7 @@ public Plugin myinfo =
 	version 		= PLUGIN_VERSION,
 	url 			= "N/A"
 }
-/*
-** 该功能嫖至作者 NiCo-op, Edited By Ernecio (Satanael) 的,链接没找到.
-*/
+
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
 	CreateNative("GetWitchNumber", GetNativeWitchNumber);
@@ -67,7 +64,6 @@ public void OnPluginStart()
 
 	HookEvent("round_start",  Event_RoundStart);//回合开始.
 	HookEvent("witch_spawn",  Event_WitchSpawn);//女巫出现.
-	//HookEvent("witch_killed", Event_Witchkilled);//女巫死亡.
 
 	if(g_bLateLoad)//如果插件延迟加载.
 	{
@@ -96,44 +92,13 @@ public void Event_WitchSpawn(Event event, const char[] sName, bool bDontBroadcas
 			g_hWitchIndex.Push(EntIndexToEntRef(iWitchid));//把数据推送的数组末尾.
 	}
 }
-/*
-//实体删除.
-public void OnEntityDestroyed(int entity)
-{
-	if(IsValidEntity(entity))
-	{
-		char sName[32];
-		GetEntityClassname(entity, sName, sizeof(sName));
-		if(strcmp(sName,"witch") == 0)
-		{
-			int iIndex = GetWitchNumber(entity);
-
-			if(iIndex != -1)
-				//g_hWitchIndex.Set(iIndex, -1);//突然发现根本不需要重新设置值.
-		}
-	}
-}
-//女巫死亡.
-public void Event_Witchkilled(Event event, const char[] name, bool dontBroadcast)
-{
-	int iWitchid = event.GetInt("witchid");
-
-	if (IsValidEntity(iWitchid))
-	{
-		int iIndex = GetWitchNumber(iWitchid);
-
-		if(iIndex != -1)
-			//g_hWitchIndex.Set(iIndex, -1);//突然发现根本不需要重新设置值.
-	}
-}
-*/
 //获取自定义的女巫编号.
-int GetNativeWitchNumber(Handle plugin, int numParams)
+stock int GetNativeWitchNumber(Handle plugin, int numParams)
 {
 	return GetWitchNumber(GetNativeCell(1));
 }
 //获取自定义的女巫编号.
-int GetWitchNumber(int iWitchid)
+stock int GetWitchNumber(int iWitchid)
 {
 	for(int i = 0; i < g_hWitchIndex.Length; i ++)
 		if(EntRefToEntIndex(g_hWitchIndex.Get(i)) == iWitchid)
@@ -142,7 +107,7 @@ int GetWitchNumber(int iWitchid)
 	return -1;//数组里没有该女巫的索引.
 }
 //获取到失效的实体索引.
-int GetInvalidNumber()
+stock int GetInvalidNumber()
 {
 	for(int i = 0; i < g_hWitchIndex.Length; i ++)
 		if(EntRefToEntIndex(g_hWitchIndex.Get(i)) == INVALID_ENT_REFERENCE)

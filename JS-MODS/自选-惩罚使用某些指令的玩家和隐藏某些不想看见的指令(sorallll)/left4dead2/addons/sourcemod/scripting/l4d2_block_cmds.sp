@@ -61,7 +61,7 @@ void GetCmds()
 public Action CmdIntercept(int client, const char[] Command, int args)
 {
 	if(IsValidClient(client))
-		PunishType(client);
+		PunishType(client, Command);
 	return Plugin_Stop;
 }
 

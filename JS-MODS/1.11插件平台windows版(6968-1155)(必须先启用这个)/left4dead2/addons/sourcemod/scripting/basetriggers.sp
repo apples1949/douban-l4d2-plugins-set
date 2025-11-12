@@ -233,7 +233,7 @@ public Action Command_Motd(int client, int args)
 	if (!IsClientInGame(client))
 		return Plugin_Handled;
 	
-	ShowMOTDPanel(client, "Message Of The Day", "motd", MOTDPANEL_TYPE_INDEX);
+	ShowMOTDPanel(client, "今日消息:", "motd", MOTDPANEL_TYPE_INDEX);
 
 	return Plugin_Handled;
 }
@@ -317,7 +317,7 @@ public void OnClientSayCommand_Post(int client, const char[] command, const char
 	}
 	else if (strcmp(sArgs, "motd", false) == 0)
 	{
-		ShowMOTDPanel(client, "Message Of The Day", "motd", MOTDPANEL_TYPE_INDEX);
+		ShowMOTDPanel(client, "今日消息:", "motd", MOTDPANEL_TYPE_INDEX);
 	}
 }
 
