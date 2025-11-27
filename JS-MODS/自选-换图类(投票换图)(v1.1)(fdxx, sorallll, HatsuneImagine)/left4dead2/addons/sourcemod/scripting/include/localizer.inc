@@ -495,11 +495,11 @@ methodmap Localizer < Handle
 	 * @note	This precache is only actual for installation mode 'LC_INSTALL_MODE_DATABASE' (default).
 	 * @error	If #phrase length is <= 1.
 	 */
-	public bool PrecacheTranslationFile(char[] file, LC_CACHE cache = LC_CACHE_RAM)
-	{
-		
-		return true;
-	}
+	//public bool PrecacheTranslationFile(char[] file, LC_CACHE cache = LC_CACHE_RAM)
+	//{
+	//	
+	//	return true;
+	//}
 	
 	/**
 	 * Adds a new #phrase and translation.
@@ -1072,19 +1072,22 @@ void Loc_StackProcessingDecode(LC_OP_FLAG flags)
 	float time;
 	bool bUpdated;
 	int iFileSize;
-	static float total_time, max_time;
-	static int iCount, total_file_size, max_size;
+	//static float total_time; 
+	static float max_time;
+	static int iCount;
+	//static int total_file_size;
+	static int max_size;
 	static char sFile[LC_MAX_LANG_FILE_LENGTH];
 	
-	#pragma unused total_file_size, total_time
+	//#pragma unused total_file_size, total_time
 	
 	g_bLcDecodeInProgress = true;
 	
 	if( flags & LC_OP_FLAG_RESET ) {
-		total_time = 0.0;
+		//total_time = 0.0;
 		max_time = 0.0;
 		iCount = 0;
-		total_file_size = 0;
+		//total_file_size = 0;
 		max_size = 0;
 	}
 	if( flags & LC_OP_FLAG_DELAY ) {
@@ -1096,9 +1099,9 @@ void Loc_StackProcessingDecode(LC_OP_FLAG flags)
 	{
 		if( g_hLcStackEncoded.Empty )
 		{
-			#if defined LC_PROFILER
-				Loc_PrintProfiler(iCount, total_file_size, max_size, total_time, max_time, LC_OP_TYPE_DECODE);
-			#endif
+			//#if defined LC_PROFILER
+			//	Loc_PrintProfiler(iCount, total_file_size, max_size, total_time, max_time, LC_OP_TYPE_DECODE);
+			//#endif
 			Loc_StackProcessingCache(LC_OP_FLAG_RESET | LC_OP_FLAG_DELAY);
 			return;
 		}
@@ -1113,9 +1116,9 @@ void Loc_StackProcessingDecode(LC_OP_FLAG flags)
 		
 		if( max_time < g_hLcProf.Time ) max_time = g_hLcProf.Time;
 		if( bUpdated ) {
-			total_file_size += iFileSize;
+			//total_file_size += iFileSize;
 			if( max_size < iFileSize ) max_size = iFileSize;
-			total_time += g_hLcProf.Time;
+			//total_time += g_hLcProf.Time;
 			++ iCount;
 		}
 	}
@@ -1133,16 +1136,19 @@ void Loc_StackProcessingCache(LC_OP_FLAG flags)
 	float time;
 	bool bUpdated;
 	int iFileSize;
-	static float total_time, max_time;
-	static int iCount, total_file_size, max_size;
+	//static float total_time;
+	static float max_time;
+	static int iCount;
+	//static int total_file_size;
+	static int max_size;
 	static char sFile[LC_MAX_LANG_FILE_LENGTH];
 	
-	#pragma unused total_file_size, total_time
+	//#pragma unused total_file_size, total_time
 	
 	if( flags & LC_OP_FLAG_RESET ) {
-		total_time = 0.0;
+		//total_time = 0.0;
 		max_time = 0.0;
-		total_file_size = 0;
+		//total_file_size = 0;
 		max_size = 0;
 		iCount = 0;
 	}
@@ -1156,9 +1162,9 @@ void Loc_StackProcessingCache(LC_OP_FLAG flags)
 		if( g_hLcStackCache.Empty )
 		{
 			g_bLcDecodeInProgress = false;
-			#if defined LC_PROFILER
-				Loc_PrintProfiler(iCount, total_file_size, max_size, total_time, max_time, LC_OP_TYPE_CACHE );
-			#endif
+			//#if defined LC_PROFILER
+			//	Loc_PrintProfiler(iCount, total_file_size, max_size, total_time, max_time, LC_OP_TYPE_CACHE );
+			//#endif
 			
 			if( !g_hLcStackEncoded.Empty )
 			{
@@ -1197,8 +1203,8 @@ void Loc_StackProcessingCache(LC_OP_FLAG flags)
 		if( max_time < g_hLcProf.Time ) max_time = g_hLcProf.Time;
 		if( bUpdated )
 		{
-			total_time += g_hLcProf.Time;
-			total_file_size += iFileSize;
+			//total_time += g_hLcProf.Time;
+			//total_file_size += iFileSize;
 			if( max_size < iFileSize ) max_size = iFileSize;
 			++ iCount;
 		}

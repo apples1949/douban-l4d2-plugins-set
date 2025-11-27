@@ -116,13 +116,13 @@ void DisplayBanTimeMenu(int client)
 	menu.SetTitle(title);
 	menu.ExitBackButton = true;
 
-	menu.AddItem("0", "永久");
-	menu.AddItem("10", "10 分钟");
-	menu.AddItem("30", "30 分钟");
-	menu.AddItem("60", "1 小时");
-	menu.AddItem("240", "4 小时");
-	menu.AddItem("1440", "1 天");
-	menu.AddItem("10080", "1 周");
+	menu.AddItem("0", "Permanent");
+	menu.AddItem("10", "10 Minutes");
+	menu.AddItem("30", "30 Minutes");
+	menu.AddItem("60", "1 Hour");
+	menu.AddItem("240", "4 Hours");
+	menu.AddItem("1440", "1 Day");
+	menu.AddItem("10080", "1 Week");
 
 	menu.Display(client, MENU_TIME_FOREVER);
 }
@@ -137,7 +137,7 @@ void DisplayBanReasonMenu(int client)
 	menu.ExitBackButton = true;
 	
 	//Add custom chat reason entry first
-	menu.AddItem("", "自定义原因 (聊天窗输入)");
+	menu.AddItem("", "Custom reason (type in chat)");
 	
 	//Loading configurable entries from the kv-file
 	char reasonName[100];

@@ -1,0 +1,28 @@
+// Many thanks to Psykotikism for sharing the Windows signature (https://github.com/Psykotikism/L4D1-2_Signatures)
+"Games"
+{
+	"left4dead2"
+    {
+		"Functions"
+		{
+			"Witch::Spawn"
+			{
+				"signature"		"Witch::Spawn"
+				"callconv"		"thiscall"
+				"return"		"bool"
+				"this"			"entity"
+			}
+		}
+
+		"Signatures"
+		{
+			"Witch::Spawn"
+			{
+				"library"	"server"
+				"linux"		"@_ZN5Witch5SpawnEv"
+				"windows"	"\x56\x8B\xF1\xF7\x86\x78\x1C\x00\x00\x00\x10\x00\x00"
+				/* 56 8B F1 F7 86 78 1C 00 00 00 10 00 00 */
+			}
+		}
+    }
+}

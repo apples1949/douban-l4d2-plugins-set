@@ -334,8 +334,19 @@ public Action Command_AddBan(int client, int args)
 
 	int minutes = StringToInt(time);
 
-	LogAction(client, -1, "\"%L\" added ban (minutes \"%d\") (id \"%s\") (reason \"%s\")", client, minutes, authid, arg_string[total_len]);
-	BanIdentity(authid, minutes, BANFLAG_AUTHID, arg_string[total_len], "sm_addban", client);
+	LogAction(client, 
+			  -1, 
+			  "\"%L\" added ban (minutes \"%d\") (id \"%s\") (reason \"%s\")", 
+			  client, 
+			  minutes, 
+			  authid, 
+			  arg_string[total_len]);
+	BanIdentity(authid, 
+				minutes, 
+				BANFLAG_AUTHID, 
+				arg_string[total_len], 
+				"sm_addban", 
+				client);
 
 	ReplyToCommand(client, "[SM] %t", "Ban added");
 
@@ -395,7 +406,7 @@ public Action Command_AbortBan(int client, int args)
 
 public Action OnClientSayCommand(int client, const char[] command, const char[] sArgs)
 {
-	if(playerinfo[client].isWaitingForChatReason)
+	if(playerinfo[client].isWaitingForChatReason && !IsChatTrigger())
 	{
 		playerinfo[client].isWaitingForChatReason = false;
 		PrepareBan(client, playerinfo[client].banTarget, playerinfo[client].banTime, sArgs);

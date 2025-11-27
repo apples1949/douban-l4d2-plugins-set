@@ -61,7 +61,7 @@ int
 	g_iType[MAXPLAYERS + 1],
 	g_iPos[MAXPLAYERS + 1][2];
 
-static const char
+char
 	g_sLangCode[][] = {
 		"en",
 		"chi"

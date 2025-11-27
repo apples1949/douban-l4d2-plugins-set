@@ -1,0 +1,63 @@
+"Games"
+{
+    "left4dead2"
+    {
+        "Functions"
+        {
+            "CBaseEntity::InputKill"
+            {
+                "signature"     "CBaseEntity::InputKill"
+                "callconv"      "thiscall"
+                "return"        "int"
+                "this"          "entity"
+                "arguments"
+                {
+                    "inputdata_t"
+                    {
+                        "type"  "objectptr"
+                    }
+                }
+            }
+
+            "CBaseEntity::InputKillHierarchy"
+            {
+                "signature"     "CBaseEntity::InputKillHierarchy"
+                "callconv"      "thiscall"
+                "return"        "int"
+                "this"          "entity"
+                "arguments"
+                {
+                    "inputdata_t"
+                    {
+                        "type"  "objectptr"
+                    }
+                }
+            }
+        }
+
+        "Signatures"
+        {
+            // windows sig:
+            // search for string "kickid %d CBaseEntity::InputKill()\n"
+            "CBaseEntity::InputKill"
+            {
+                "library"   "server"
+                "linux"     "@_ZN11CBaseEntity9InputKillER11inputdata_t"
+                "windows"   "\x56\x8B\xF1\x8B\x86\x0C\x02\x00\x00\x83\xF8\xFF\x74\x2A\x8B\x15\x2A\x2A\x2A\x2A\x8B\xC8\x81\xE1\xFF\x0F\x00\x00\x03\xC9\x8D\x4C\xCA\x04\x85\xC9\x74\x2A\xC1\xE8\x0C\x39\x41\x04\x75\x2A\x8B\x09\x85\xC9\x74\x2A\x8B\x01"
+                /* 56 8B F1 8B 86 0C 02 00 00 83 F8 FF 74 ? 8B 15 ? ? ? ? 8B C8 81 E1 FF 0F 00 00 03 C9 8D 4C CA 04 85 C9 74 ? C1 E8 0C 39 41 04 75 ? 8B 09 85 C9 74 ? 8B 01 */
+            }
+
+            // windows sig:
+            // find CBaseEntity::InputKill like above, go xref it.
+            // you will see a data xref, click in. (the second one)
+            // down below you will see two strings "InputKillHierarchy" and "KillHierarchy", the call down near these strings is CBaseEntity::InputKillHierarchy.
+            "CBaseEntity::InputKillHierarchy"
+            {
+                "library"   "server"
+                "linux"     "@_ZN11CBaseEntity18InputKillHierarchyER11inputdata_t"
+                "windows"   "\x55\x8B\xEC\x53\x8B\xD9\x8B\x83\x78\x01\x00\x00"
+                /* 55 8B EC 53 8B D9 8B 83 78 01 00 00 */
+            }
+        }
+    }
+}

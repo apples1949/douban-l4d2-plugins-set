@@ -319,7 +319,7 @@ void SQL_CallbackLoad(Database db, DBResultSet results, const char[] error, Data
 			else
 			{
 				g_bDatabaseInitial[client] = true;//设置布尔值.
-				SQL_Save(client, g_sAuthId[client], g_iDamageMultiple[client]);//如果已存在数据就更新.
+				SQL_Save(g_sAuthId[client], g_iDamageMultiple[client]);//如果已存在数据就更新.
 			}
 		}
 		else
@@ -359,7 +359,7 @@ stock void SQL_Delete(const char[] auth)
 //删除数据回调.
 void SQL_CallbackDelOld(Database db, DBResultSet results, const char[] error, any data) {}
 //更新玩家数据.
-stock void SQL_Save(int client, char[] auth, int difficulty) 
+stock void SQL_Save(char[] auth, int difficulty) 
 {
 	if (!g_dbSQL)
 		return;

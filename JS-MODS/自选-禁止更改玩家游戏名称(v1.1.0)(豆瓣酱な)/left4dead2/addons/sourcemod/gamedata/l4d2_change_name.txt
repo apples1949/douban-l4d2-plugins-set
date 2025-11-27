@@ -1,0 +1,34 @@
+// Many thanks to Psykotikism for sharing the Windows signature (https://github.com/Psykotikism/L4D1-2_Signatures)
+"Games"
+{
+	"left4dead2"
+    {
+		"Functions"
+		{
+			"CTerrorPlayer::ChangeName"
+			{
+				"signature"		"CTerrorPlayer::ChangeName"
+				"callconv"		"thiscall"
+				"return"		"int"
+				"this"			"entity"
+				"arguments"
+				{
+					"src"
+					{
+						"type"	"charptr"
+					}
+				}
+			}
+		}
+
+		"Signatures"
+		{
+			"CTerrorPlayer::ChangeName"
+			{
+				"library"	"server"
+				"linux"		"@_ZN13CTerrorPlayer10ChangeNameEPKc"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x24\x53\x56\x57\x8B\xF9\x8B\x07"
+			}
+		}
+    }
+}
