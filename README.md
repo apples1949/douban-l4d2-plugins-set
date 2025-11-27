@@ -2,3 +2,4 @@
 
 Github点击转到[发布页](https://github.com/apples1949/douban-l4d2-plugins-set/releases/tag/beifen)(不一定快)下载原包  
 github低速的情况下，点击[Gitee登录下载](https://gitee.com/apples1949/douban-l4d2-plugins-set/repository/archive/main.zip)(需要大陆手机号注册)下载整个仓库  
+更换插件前请注意自己的插件平台版本是不是1.12！  
