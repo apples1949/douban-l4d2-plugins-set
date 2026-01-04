@@ -1,0 +1,7 @@
+"hostport"
+{
+	"default"
+	{
+		"ServerName"		"插件测试服"
+	}
+}
