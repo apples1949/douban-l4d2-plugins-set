@@ -137,53 +137,53 @@ public void ConVarMaxHealChanged(ConVar convar, const char[] oldValue, const cha
 }
 public void OnConfigsExecuted()
 {
-	if (g_hAidHealPercent.FloatValue > 0)
+	if (g_hAidHealPercent.FloatValue != 0)
 		g_hSurvivorPercent.FloatValue = g_hAidHealPercent.FloatValue;
-	if (g_hAdrenalineHealth.IntValue > 0)
+	if (g_hAdrenalineHealth.IntValue != 0)
 		g_hSurvivorBuffer.IntValue = g_hAdrenalineHealth.IntValue;
-	if (g_hAidKitMaxHeal.IntValue > 0)
+	if (g_hAidKitMaxHeal.IntValue != 0)
 		g_hSurvivorMaxHeal.IntValue = g_hAidKitMaxHeal.IntValue;
-	if (g_hPainPillsHealth.IntValue > 0)
+	if (g_hPainPillsHealth.IntValue != 0)
 		g_hSurvivorPainPills.IntValue = g_hPainPillsHealth.IntValue;
-	if (g_hRespawnHealth.IntValue > 0)
+	if (g_hRespawnHealth.IntValue != 0)
 		g_hSurvivorRespawn.IntValue = g_hRespawnHealth.IntValue;
-	if (g_hReviveHealth.IntValue > 0)
+	if (g_hReviveHealth.IntValue != 0)
 		g_hSurvivorRevive.IntValue = g_hReviveHealth.IntValue;
 }
 //参数改变回调.
 public void ConVarChangedAidHealPercent(ConVar convar, const char[] oldValue, const char[] newValue)
 {
-	if (g_hAidHealPercent.FloatValue > 0)
+	if (g_hAidHealPercent.FloatValue != 0)
 		g_hSurvivorPercent.FloatValue = g_hAidHealPercent.FloatValue;
 }
 //参数改变回调.
 public void ConVarChangedSprayBigLotto(ConVar convar, const char[] oldValue, const char[] newValue)
 {
-	if (g_hAdrenalineHealth.IntValue > 0)
+	if (g_hAdrenalineHealth.IntValue != 0)
 		g_hSurvivorBuffer.IntValue = g_hAdrenalineHealth.IntValue;
 }
 //参数改变回调.
 public void ConVarChangedAidKitMaxHeal(ConVar convar, const char[] oldValue, const char[] newValue)
 {
-	if (g_hAidKitMaxHeal.IntValue > 0)
+	if (g_hAidKitMaxHeal.IntValue != 0)
 		g_hSurvivorMaxHeal.IntValue = g_hAidKitMaxHeal.IntValue;
 }
 //参数改变回调.
 public void ConVarChangedPainPillsHealth(ConVar convar, const char[] oldValue, const char[] newValue)
 {
-	if (g_hPainPillsHealth.IntValue > 0)
+	if (g_hPainPillsHealth.IntValue != 0)
 		g_hSurvivorPainPills.IntValue = g_hPainPillsHealth.IntValue;
 }
 //参数改变回调.
 public void ConVarChangedReviveHealth(ConVar convar, const char[] oldValue, const char[] newValue)
 {
-	if (g_hRespawnHealth.IntValue > 0)
+	if (g_hRespawnHealth.IntValue != 0)
 		g_hSurvivorRespawn.IntValue = g_hRespawnHealth.IntValue;
 }
 //参数改变回调.
 public void ConVarChangedRespawnHealth(ConVar convar, const char[] oldValue, const char[] newValue)
 {
-	if (g_hReviveHealth.IntValue > 0)
+	if (g_hReviveHealth.IntValue != 0)
 		g_hSurvivorRevive.IntValue = g_hReviveHealth.IntValue;
 }
 //加载签名文件.
