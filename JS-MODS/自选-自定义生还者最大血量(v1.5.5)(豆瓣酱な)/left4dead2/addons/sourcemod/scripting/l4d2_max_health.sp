@@ -34,6 +34,11 @@
  *
  *	1:添加cvar方便萌新使用此插件.
  *
+ *	v1.5.5
+ *
+ *	1:修复忽略选项设置无效的问题.
+ *	2:添加参数设置医疗包恢复百分比.
+ *
  */
 #pragma semicolon 1
 //強制1.7以後的新語法
@@ -44,16 +49,18 @@
 
 #define DEBUG		0		//0=禁用调试信息,1=显示调试信息.
 #define GAMEDATA			"l4d2_max_health"
-#define PLUGIN_VERSION		"1.4.4"
+#define PLUGIN_VERSION		"1.5.5"
 #define MAX_PLAYERS			32
 #define CVAR_FLAGS			FCVAR_NOTIFY
 
 ConVar 
+	g_hAidHealPercent,
 	g_hAdrenalineHealth, 
 	g_hAidKitMaxHeal, 
 	g_hPainPillsHealth, 
 	g_hRespawnHealth,
 	g_hReviveHealth, 
+	g_hSurvivorPercent,
 	g_hSurvivorBuffer,
 	g_hSurvivorMaxHeal,
 	g_hSurvivorPainPills,
@@ -83,6 +90,7 @@ public void OnPluginStart()
 {
 	LoadingGameData();
 
+	g_hSurvivorPercent = FindConVar("first_aid_heal_percent");//医疗包恢复百分比(默认:0.8).
 	g_hSurvivorBuffer = FindConVar("adrenaline_health_buffer");//肾上腺素获得多少临时血量(默认值:25).
 	g_hSurvivorMaxHeal = FindConVar("first_aid_kit_max_heal");//生还者最大血量上限(默认:100).
 	g_hSurvivorPainPills = FindConVar("pain_pills_health_value");//止痛药获得多少临时血量(默认值:50).
@@ -95,12 +103,14 @@ public void OnPluginStart()
 	HookEvent("defibrillator_used", Event_DefibrillatorUsed, EventHookMode_Pre);//幸存者使用电击器救活队友.
 	HookEvent("survivor_rescued", 	Event_SurvivorRescued, EventHookMode_Pre);//幸存者在营救门复活.
 
+	g_hAidHealPercent = CreateConVar("l4d2_first_aid_heal_percent", "0.8", "医疗包恢复百分比(默认:0.8). 0=忽略.", CVAR_FLAGS);
 	g_hAdrenalineHealth = CreateConVar("l4d2_adrenaline_health_buffer", "50", "肾上腺素获得多少临时血量(默认值:25). 0=忽略.", CVAR_FLAGS);
 	g_hAidKitMaxHeal = CreateConVar("l4d2_first_aid_kit_max_heal", "200", "生还者最大血量上限(默认值:100). 0=忽略.", CVAR_FLAGS);
 	g_hPainPillsHealth = CreateConVar("l4d2_pain_pills_health_value", "100", "止痛药获得多少临时血量(默认值:50). 0=忽略.", CVAR_FLAGS);
 	g_hRespawnHealth = CreateConVar("l4d2_z_survivor_respawn_health", "100", "电击器或营救门复活血量(默认值:50). 0=忽略.", CVAR_FLAGS);
 	g_hReviveHealth = CreateConVar("l4d2_survivor_revive_health", "60", "生还者被救起后恢复的临时血量(默认值:30). 0=忽略.", CVAR_FLAGS);
 	
+	g_hAidHealPercent.AddChangeHook(ConVarChangedAidHealPercent);
 	g_hAdrenalineHealth.AddChangeHook(ConVarChangedSprayBigLotto);
 	g_hAidKitMaxHeal.AddChangeHook(ConVarChangedAidKitMaxHeal);
 	g_hPainPillsHealth.AddChangeHook(ConVarChangedPainPillsHealth);
@@ -127,36 +137,54 @@ public void ConVarMaxHealChanged(ConVar convar, const char[] oldValue, const cha
 }
 public void OnConfigsExecuted()
 {
-	g_hSurvivorBuffer.IntValue = g_hAdrenalineHealth.IntValue;
-	g_hSurvivorMaxHeal.IntValue = g_hAidKitMaxHeal.IntValue;
-	g_hSurvivorPainPills.IntValue = g_hPainPillsHealth.IntValue;
-	g_hSurvivorRespawn.IntValue = g_hRespawnHealth.IntValue;
-	g_hSurvivorRevive.IntValue = g_hReviveHealth.IntValue;
+	if (g_hAidHealPercent.FloatValue > 0)
+		g_hSurvivorPercent.FloatValue = g_hAidHealPercent.FloatValue;
+	if (g_hAdrenalineHealth.IntValue > 0)
+		g_hSurvivorBuffer.IntValue = g_hAdrenalineHealth.IntValue;
+	if (g_hAidKitMaxHeal.IntValue > 0)
+		g_hSurvivorMaxHeal.IntValue = g_hAidKitMaxHeal.IntValue;
+	if (g_hPainPillsHealth.IntValue > 0)
+		g_hSurvivorPainPills.IntValue = g_hPainPillsHealth.IntValue;
+	if (g_hRespawnHealth.IntValue > 0)
+		g_hSurvivorRespawn.IntValue = g_hRespawnHealth.IntValue;
+	if (g_hReviveHealth.IntValue > 0)
+		g_hSurvivorRevive.IntValue = g_hReviveHealth.IntValue;
+}
+//参数改变回调.
+public void ConVarChangedAidHealPercent(ConVar convar, const char[] oldValue, const char[] newValue)
+{
+	if (g_hAidHealPercent.FloatValue > 0)
+		g_hSurvivorPercent.FloatValue = g_hAidHealPercent.FloatValue;
 }
 //参数改变回调.
 public void ConVarChangedSprayBigLotto(ConVar convar, const char[] oldValue, const char[] newValue)
 {
-	g_hSurvivorBuffer.IntValue = g_hAdrenalineHealth.IntValue;
+	if (g_hAdrenalineHealth.IntValue > 0)
+		g_hSurvivorBuffer.IntValue = g_hAdrenalineHealth.IntValue;
 }
 //参数改变回调.
 public void ConVarChangedAidKitMaxHeal(ConVar convar, const char[] oldValue, const char[] newValue)
 {
-	g_hSurvivorMaxHeal.IntValue = g_hAidKitMaxHeal.IntValue;
+	if (g_hAidKitMaxHeal.IntValue > 0)
+		g_hSurvivorMaxHeal.IntValue = g_hAidKitMaxHeal.IntValue;
 }
 //参数改变回调.
 public void ConVarChangedPainPillsHealth(ConVar convar, const char[] oldValue, const char[] newValue)
 {
-	g_hSurvivorPainPills.IntValue = g_hPainPillsHealth.IntValue;
+	if (g_hPainPillsHealth.IntValue > 0)
+		g_hSurvivorPainPills.IntValue = g_hPainPillsHealth.IntValue;
 }
 //参数改变回调.
 public void ConVarChangedReviveHealth(ConVar convar, const char[] oldValue, const char[] newValue)
 {
-	g_hSurvivorRespawn.IntValue = g_hRespawnHealth.IntValue;
+	if (g_hRespawnHealth.IntValue > 0)
+		g_hSurvivorRespawn.IntValue = g_hRespawnHealth.IntValue;
 }
 //参数改变回调.
 public void ConVarChangedRespawnHealth(ConVar convar, const char[] oldValue, const char[] newValue)
 {
-	g_hSurvivorRevive.IntValue = g_hReviveHealth.IntValue;
+	if (g_hReviveHealth.IntValue > 0)
+		g_hSurvivorRevive.IntValue = g_hReviveHealth.IntValue;
 }
 //加载签名文件.
 void LoadingGameData()
@@ -587,8 +615,8 @@ stock bool IsSurvivorsHealingStatus(int client)
 	int iHealth = GetEntProp(client, Prop_Data, "m_iHealth");
 	int iMaxHealth = GetEntProp(client, Prop_Data, "m_iMaxHealth");
 	
-	int   iFirstAidKitMaxHeal 	= GetConVarInt(FindConVar("first_aid_kit_max_heal"));//最大血量上限.
-	float fFirstAidHealPercent 	= GetConVarFloat(FindConVar("first_aid_heal_percent"));//医疗包恢复比例.
+	int   iFirstAidKitMaxHeal 	= g_hSurvivorMaxHeal.IntValue;//最大血量上限.
+	float fFirstAidHealPercent 	= g_hSurvivorPercent.FloatValue;//医疗包恢复比例.
 
 	if (iFirstAidKitMaxHeal > iMaxHealth)
 	{
