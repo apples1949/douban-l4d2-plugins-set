@@ -31,6 +31,7 @@
 #include <l4d2_simulation>	//自定义玩家难度.
 #define REQUIRE_PLUGIN		//标记为可选结束.
 #include <l4d2_nativevote>			// https://github.com/fdxx/l4d2_nativevote
+#include <left4dhooks>
 
 #define PLUGIN_VERSION "2.4.6"
 
@@ -160,6 +161,8 @@ void IsChooseFunction(int client)
 		menu.AddItem("0", "更改难度");
 	menu.AddItem("1", "重启章节");
 	menu.AddItem("2", "踢出玩家");
+	menu.AddItem("3", "给予药品");
+	menu.AddItem("4", "复活玩家");
 	menu.ExitButton = true;//默认值:true,设置为:false,则不显示退出选项.
 	//menu.ExitBackButton = true;
 	menu.Display(client, MENU_TIME_FOREVER);
@@ -184,6 +187,10 @@ int Menu_HandlerFunction(Menu menu, MenuAction action, int client, int itemNum)
 						MenuVoteReopenTheChapter(client, sItem);
 					case 2:
 						MenuVoteKickThePlayer(client, sItem);
+					case 3:
+						MenuVoteGivePainPills(client, sItem);
+					case 4:
+						MenuVoteRespawnPlayer(client, sItem);
 				}
 			}
 		}
@@ -324,7 +331,7 @@ void MenuVoteReopenTheChapter(int client, char[] sItem)
 {
 	if (g_hChangelevel != null)
 	{
-		ReplyToCommand(client, "\x04[提示]\x05当前也存在重启章节的计时器.");
+		ReplyToCommand(client, "\x04[提示]\x05当前存在重启章节的计时器.");
 		return;
 	}
 	if (TestVoteDelay(client))
@@ -359,6 +366,86 @@ void MenuVoteReopenTheChapter(int client, char[] sItem)
 			continue;
 
 		vote.SetTitle("重启当前章节?");
+
+		clients[playerCount++] = i;
+	}
+	vote.DisplayVote(clients, playerCount, g_iMenuTime);
+}
+
+void MenuVoteGivePainPills(int client, char[] sItem)
+{
+	if (TestVoteDelay(client))
+	{
+		IsChooseFunction(client);
+		return;
+	}
+	if (!L4D2NativeVote_IsAllowNewVote())
+	{
+		IsChooseFunction(client);
+		ReplyToCommand(client, "\x04[提示]\x05当前正在进行投票.");
+		return;
+	}
+	char sInfo[128], sData[6][32];
+	strcopy(sData[0], sizeof(sData[]), sItem);
+	strcopy(sData[1], sizeof(sData[]), "内容");//这个里的内容用不着.
+	strcopy(sData[2], sizeof(sData[]), "内容");//这个里的内容用不着.
+	strcopy(sData[3], sizeof(sData[]), "内容");//这个里的内容用不着.
+	strcopy(sData[4], sizeof(sData[]), "内容");//这个里的内容用不着.
+	ImplodeStrings(sData, sizeof(sData), "|", sInfo, sizeof(sInfo));//打包字符串.
+
+	PrintToChatAll("\x04[提示]\x03%N\x05发起投票给予所有生还者止痛药.", client);
+
+	L4D2NativeVote vote = L4D2NativeVote(Menu_HandlerGetVotes);
+	vote.Initiator = client;
+	vote.SetInfo(sInfo);
+
+	int playerCount = 0;
+	int[] clients = new int[MaxClients];
+	for (int i = 1; i <= MaxClients; i++) {
+		if (!IsClientInGame(i) || IsFakeClient(i))
+			continue;
+
+		vote.SetTitle("给予止痛药?");
+
+		clients[playerCount++] = i;
+	}
+	vote.DisplayVote(clients, playerCount, g_iMenuTime);
+}
+
+void MenuVoteRespawnPlayer(int client, char[] sItem)
+{
+	if (TestVoteDelay(client))
+	{
+		IsChooseFunction(client);
+		return;
+	}
+	if (!L4D2NativeVote_IsAllowNewVote())
+	{
+		IsChooseFunction(client);
+		ReplyToCommand(client, "\x04[提示]\x05当前正在进行投票.");
+		return;
+	}
+	char sInfo[128], sData[6][32];
+	strcopy(sData[0], sizeof(sData[]), sItem);
+	strcopy(sData[1], sizeof(sData[]), "内容");//这个里的内容用不着.
+	strcopy(sData[2], sizeof(sData[]), "内容");//这个里的内容用不着.
+	strcopy(sData[3], sizeof(sData[]), "内容");//这个里的内容用不着.
+	strcopy(sData[4], sizeof(sData[]), "内容");//这个里的内容用不着.
+	ImplodeStrings(sData, sizeof(sData), "|", sInfo, sizeof(sInfo));//打包字符串.
+
+	PrintToChatAll("\x04[提示]\x03%N\x05发起投票给予所有生还者止痛药.", client);
+
+	L4D2NativeVote vote = L4D2NativeVote(Menu_HandlerGetVotes);
+	vote.Initiator = client;
+	vote.SetInfo(sInfo);
+
+	int playerCount = 0;
+	int[] clients = new int[MaxClients];
+	for (int i = 1; i <= MaxClients; i++) {
+		if (!IsClientInGame(i) || IsFakeClient(i))
+			continue;
+
+		vote.SetTitle("复活生还者?");
 
 		clients[playerCount++] = i;
 	}
@@ -571,12 +658,50 @@ void Menu_HandlerGetVotes(L4D2NativeVote vote, VoteAction action, int param1, in
 						
 						PrintToChatAll("\x04[提示]\x05投票通过\x04.\x05玩家\x03%s\x05已被踢出.\x04(\x05同意\x03%d%%\x05总共\x03%i\x05票\x04)\x05.", sInfo[1], iPercent, vote.YesCount + vote.NoCount);
 					}
+					case 3:
+					{
+						vote.SetPass("投票通过...");
+						AllSurvivorPainPills();
+						PrintHintTextToAll("[提示] 投票通过,已给与所有生还者止痛药.");
+						PrintToChatAll("\x04[提示]\x05投票通过\x04.\x05已给与所有生还者止痛药\x04(\x05同意\x03%d%%\x05总共\x03%i\x05票\x04)\x05.", iPercent, vote.YesCount + vote.NoCount);
+					}
+					case 4:
+					{
+						vote.SetPass("投票通过...");
+						AllSurvivorRespawn();
+						PrintHintTextToAll("[提示] 投票通过,已复活所有生还者.");
+						PrintToChatAll("\x04[提示]\x05投票通过\x04.\x05已复活所有生还者\x04(\x05同意\x03%d%%\x05总共\x03%i\x05票\x04)\x05.", iPercent, vote.YesCount + vote.NoCount);
+					}
 				}
 			}
 		}
 	}
 }
+void AllSurvivorPainPills()
+{
+	for (int i = 1; i <= MaxClients; i++)
+		if (IsClientInGame(i) && GetClientTeam(i) == 2)
+			CheatCommand(i, "give", "pain_pills");
+}
 
+void AllSurvivorRespawn()
+{
+	for (int i = 1; i <= MaxClients; i++)
+		if (IsClientInGame(i) && GetClientTeam(i) == 2)
+			if (!IsPlayerAlive(i))
+				L4D_RespawnPlayer(i);
+}
+
+void CheatCommand(int client, const char[] command, const char[] nmae) 
+{
+	int bits = GetUserFlagBits(client);
+	int flags = GetCommandFlags(command);
+	SetUserFlagBits(client, ADMFLAG_ROOT);
+	SetCommandFlags(command, flags & ~FCVAR_CHEAT);
+	FakeClientCommand(client, "%s %s", command, nmae);
+	SetUserFlagBits(client, bits);
+	SetCommandFlags(command, flags);
+}
 int GetPlayerAuthIdIndex(char[] steamid)
 {
 	char auth[32];
