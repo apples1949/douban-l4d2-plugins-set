@@ -37,6 +37,10 @@
  *
  *	1:修复nb_update_frequency根据tick设置的问题,这个值根据最大刷新频率设置即可.
  *
+ *	v2.3.11
+ *
+ *	1:扩展大佬更新了,我重新兼容和修复插件里的错误.
+ *
  */
 #pragma semicolon 1
 #pragma newdecls required
@@ -45,7 +49,7 @@
 #include <sdktools>
 #include <dhooks>
 
-#define PLUGIN_VERSION	"2.3.10"
+#define PLUGIN_VERSION	"2.3.11"
 #define CVAR_FLAGS		FCVAR_NOTIFY
 #define MIN_TICK_RATE		20			//定义启动项最小值.
 #define MAX_TICK_RATE		128			//定义启动项最大值.
@@ -53,12 +57,11 @@
 
 int 
 	g_iTickRate,
-	g_iTickValue,
 	g_iTickInterval;
 
 char g_sKvPath[PLATFORM_MAX_PATH];
 
-bool g_bShouldIgnore[MAX_PLAYERS+1];
+ConVar g_hSvTickRate;
 
 TopMenu g_hTopMenu;
 TopMenuObject hOtherFeatures = INVALID_TOPMENUOBJECT;
@@ -87,13 +90,13 @@ public Plugin myinfo =
 //插件开始.
 public void OnPluginStart()
 {
-	HookEvent("player_team", Event_PlayerTeam);//玩家转换队伍.
+	g_hSvTickRate = FindConVar("sv_tickrate");
 	
 	BuildPath(Path_SM, g_sKvPath, sizeof(g_sKvPath), "configs/l4d2_tickrate_enabler.cfg");
 
 	g_iTickRate = GetCommandLineParamInt("-tickrate", MIN_TICK_RATE);//没有获取到启动项的值则使用这里的默认值:20.
 	g_iTickRate = GetTickValue(g_iTickRate, MIN_TICK_RATE, MAX_TICK_RATE);
-	g_iTickInterval = RoundToNearest(1.0 / GetTickInterval());//如果没有安装tick解锁扩展的话这个值最大为:30.
+	g_iTickInterval = g_hSvTickRate == null ? (RoundToNearest(1.0 / GetTickInterval())) : g_iTickRate;//如果没有安装tick解锁扩展的话这个值最大为:30.
 	
 	RegConsoleCmd("sm_tick", Command_TickMenu, "更改tick菜单.");
 	RegConsoleCmd("sm_tickcvar", Command_PrintCvar, "查询tick参数.");
@@ -133,12 +136,12 @@ void vCreateReadFile()
 		// 获取Kv文本内信息写入变量中.
 		for (int i = 0; i < sizeof(g_sWrite); i++)
 			kv.GetString(g_sWrite[i][0], sData[i], sizeof(sData[]), g_sWrite[i][1]);
-			
-		g_iTickValue = StringToInt(sData[1]);
 
 		if (StringToInt(sData[0]) > 0)
+		{
 			SetServerTickConVar(GetMaxTickInterval(GetTickValue(StringToInt(sData[1]), MIN_TICK_RATE, MAX_TICK_RATE)), 
 			GetMaxFps(StringToInt(sData[2])), StringToInt(sData[3]), StringToInt(sData[4]), StringToInt(sData[5]), StringToFloat(sData[6]), StringToFloat(sData[7]));
+		}
 	}
 	else{}//文件读取失败.
 	delete kv;
@@ -152,7 +155,7 @@ int GetTickValue(int value, int min, int max)
 		return max;
 	return value;
 }
-//获取服务器最大tick值.
+//服务器最大tick值不得大于最大刷新率.
 int GetMaxTickInterval(int value)
 {
 	if (value > g_iTickInterval)
@@ -171,32 +174,27 @@ int GetMaxFps(int iMaxFps)
 //设置tick相关参数.
 void SetServerTickConVar(int iMaxTick, int iMaxFps, int iMinRatio, int iMaxRatio, int iSplitrate, float fFrequency, float fMaxcleartime)
 {
-	int iMinRate		= iMaxTick * 1000;
-	int iMaxRate		= iMaxTick * 1000;
-	int iMinCmdRate		= iMaxTick;
-	int iMaxCmdRate		= iMaxTick;
-	int iMinUpDateRate	= iMaxTick;
-	int iMaxUpDateRate	= iMaxTick;
-	int iNetMaxRate		= RoundFloat((float(iMaxTick) / 2.0) * 1000.0);
+	int iNetMaxRate = RoundFloat((float(iMaxTick) / 2.0) * 1000.0);
 
 	SetConVarInt(FindConVar("fps_max"), iMaxFps, false, false);//设置服务器的最大帧率. 0=无限制.
-	SetConVarInt(FindConVar("sv_minrate"), iMinRate, false, false);//设置允许的最小带宽速率. 0=无限制.
-	SetConVarInt(FindConVar("sv_maxrate"), iMaxRate, false, false);//设置允许的最大带宽速率. 0=无限制.
-	SetConVarInt(FindConVar("sv_mincmdrate"), iMinCmdRate, false, false);//不清楚有什么用.
-	SetConVarInt(FindConVar("sv_maxcmdrate"), iMaxCmdRate, false, false);//不清楚有什么用.
-	SetConVarInt(FindConVar("sv_minupdaterate"), iMinUpDateRate, false, false);//设置服务器每秒允许的最小更新数(默认值:10).
-	SetConVarInt(FindConVar("sv_maxupdaterate"), iMaxUpDateRate, false, false);//设置服务器每秒允许的最大更新数(默认值:60).
+	SetConVarInt(FindConVar("sv_tickrate"), iMaxTick, false, false);
+	SetConVarInt(FindConVar("sv_maxrate"), iMaxTick*1000, false, false);//设置允许的最大带宽速率. 0=无限制.
+	SetConVarInt(FindConVar("sv_mincmdrate"), iMaxTick, false, false);//不清楚有什么用.
+	SetConVarInt(FindConVar("sv_maxcmdrate"), iMaxTick, false, false);//不清楚有什么用.
+	SetConVarInt(FindConVar("sv_maxupdaterate"), iMaxTick, false, false);//设置服务器每秒允许的最大更新数(默认值:60).
 	SetConVarInt(FindConVar("net_splitpacket_maxrate"), iNetMaxRate, false, false);//排队拆分数据包块时每秒的最大字节数.
 	SetConVarInt(FindConVar("net_splitrate"), iSplitrate, false, false);//设置每帧可发送的拆分数据包的片段数(默认值:1).
 	SetConVarInt(FindConVar("sv_client_min_interp_ratio"), iMinRatio, false, false);//设置客户端的最小lerp值(仅当客户端已连接时). -1 = 客户端自行设置.
 	SetConVarInt(FindConVar("sv_client_max_interp_ratio"), iMaxRatio, false, false);//设置客户端的最大lerp值(仅当客户端已连接时),当sv_client_min_interp_ratio设为-1时此cvar无效.
 	SetConVarFloat(FindConVar("net_maxcleartime"), fMaxcleartime, false, false);//根据速率设置,等待发送下一个数据包的最大秒数(默认值:4). 0=无限制.
-	SetConVarFloat(FindConVar("nb_update_frequency"), GetMaxClearTime(GetTickValue(GetNbUpdateFrequency(), MIN_TICK_RATE, MAX_TICK_RATE), fFrequency), false, false);//设置服务器世界的更新频率(默认值:0.1),数值越低丧尸和女巫的更新频率越高,非常耗费CPU. 0=自动设置.
+	SetConVarFloat(FindConVar("nb_update_frequency"), GetMaxClearTime(GetTickValue(GetNbUpdateFrequency(iMaxTick), MIN_TICK_RATE, MAX_TICK_RATE), fFrequency), false, false);//设置服务器世界的更新频率(默认值:0.1),数值越低丧尸和女巫的更新频率越高,非常耗费CPU. 0=自动设置.
 }
-//根据启动项值设置世界更新频率.
-int GetNbUpdateFrequency()
+//获取当前世界最大更新频率.
+int GetNbUpdateFrequency(int iMaxTick)
 {
-	return g_iTickRate > g_iTickInterval ? g_iTickInterval : g_iTickRate;
+	if(g_hSvTickRate == null)
+		return g_iTickInterval;
+	return iMaxTick;
 }
 //根据tick自动设置(嫖至fdxx大佬的方法).
 float GetMaxClearTime(int iMaxTick, float fFrequency)
@@ -291,7 +289,12 @@ void hHandlerMenu(Handle topmenu, TopMenuAction action, TopMenuObject object_id,
 Action Command_TickMenu(int client, int args)
 {
 	if(bCheckClientAccess(client))
-		OpenTickMenu(client, 0, false);
+	{
+		if(g_hSvTickRate != null)
+			OpenTickMenu(client, 0, false);
+		else
+			PrintToChat(client, "\x04[提示]\x05该版本扩展不支持动态修改tick功能.");
+	}
 	else
 		PrintToChat(client, "\x04[提示]\x05你无权使用该指令.");
 	return Plugin_Handled;
@@ -308,7 +311,7 @@ void OpenTickMenu(int client, int index, bool bButton = false)
 {
 	char sLine[128], sData[128], sInfo[2][32];
 	Menu menu = new Menu(MenuBanListHandler);
-	Format(sLine, sizeof(sLine), "选择tick:\n ");
+	Format(sLine, sizeof(sLine), "选择tick:\n载图生效:\n ");
 	menu.SetTitle("%s", sLine);
 
 	for (int i = g_iTickRate > g_iTickInterval ? g_iTickInterval : g_iTickRate; i >= MIN_TICK_RATE; i--)
@@ -332,9 +335,8 @@ int MenuBanListHandler(Menu menu, MenuAction action, int client, int itemNum)
 			char sItem[128], sName[32], sInfo[2][32];
 			menu.GetItem(itemNum, sItem, sizeof(sItem), _, sName, sizeof(sName));
 			ExplodeString(sItem, "|", sInfo, sizeof(sInfo), sizeof(sInfo[]));//拆分字符串.
-			PrintToChat(client, "\x04[提示]\x05已更改全部玩家为\x03%s\x05tick值.", sInfo[0]);
+			PrintToChat(client, "\x04[提示]\x05已更改为\x03%s\x05tick值,重载图后生效.", sInfo[0]);
 			VUpdateConfigurationFile(client, sInfo[0]);
-			g_iTickValue = StringToInt(sInfo[0]);
 			OpenTickMenu(client, menu.Selection, view_as<bool>(StringToInt(sInfo[1])));
 		}
 		case MenuAction_Cancel:
@@ -379,78 +381,12 @@ void VUpdateConfigurationFile(int client, char[] sMaxTick)
 		
 		if (StringToInt(sData[0]) > 0)
 		{
-			GetMaxTickInterval(GetTickValue(StringToInt(sData[1]), MIN_TICK_RATE, MAX_TICK_RATE));
-			UpdateServerTickConVar(GetMaxTickInterval(GetTickValue(StringToInt(sData[1]), MIN_TICK_RATE, MAX_TICK_RATE)), StringToFloat(sData[6]));
-			SetAllClientTick(StringToInt(sMaxTick));//设置全部玩家tick.
+			SetConVarInt(FindConVar("sv_tickrate"), StringToInt(sMaxTick), false, false);
 		}
 	}
 	else//文件读取失败.
 	{
 		PrintToChat(client, "\x04[提示]\x05读取文件失败,设置tick失败.");
-		//SetAllClientTick(MIN_TICK_RATE);//设置全部玩家tick.
 	}
 	delete kv;
-}
-//更新tick相关参数.
-void UpdateServerTickConVar(int iMaxTick, float fFrequency)
-{
-	int iMinRate		= iMaxTick * 1000;
-	int iMaxRate		= iMaxTick * 1000;
-	int iMinCmdRate		= iMaxTick;
-	int iMaxCmdRate		= iMaxTick;
-	int iMinUpDateRate	= iMaxTick;
-	int iMaxUpDateRate	= iMaxTick;
-	int iNetMaxRate		= RoundFloat((float(iMaxTick) / 2.0) * 1000.0);
-
-	SetConVarInt(FindConVar("sv_minrate"), iMinRate, false, false);//设置允许的最小带宽速率. 0=无限制.
-	SetConVarInt(FindConVar("sv_maxrate"), iMaxRate, false, false);//设置允许的最大带宽速率. 0=无限制.
-	SetConVarInt(FindConVar("sv_mincmdrate"), iMinCmdRate, false, false);//不清楚有什么用.
-	SetConVarInt(FindConVar("sv_maxcmdrate"), iMaxCmdRate, false, false);//不清楚有什么用.
-	SetConVarInt(FindConVar("sv_minupdaterate"), iMinUpDateRate, false, false);//设置服务器每秒允许的最小更新数(默认值:10).
-	SetConVarInt(FindConVar("sv_maxupdaterate"), iMaxUpDateRate, false, false);//设置服务器每秒允许的最大更新数(默认值:60).
-	SetConVarInt(FindConVar("net_splitpacket_maxrate"), iNetMaxRate, false, false);//排队拆分数据包块时每秒的最大字节数.
-	SetConVarFloat(FindConVar("nb_update_frequency"), GetMaxClearTime(GetTickValue(GetNbUpdateFrequency(), MIN_TICK_RATE, MAX_TICK_RATE), fFrequency), false, false);//设置服务器世界的更新频率(默认值:0.1),数值越低丧尸和女巫的更新频率越高,非常耗费CPU. 0=自动设置.
-}
-//设置全部玩家tick.
-stock void SetAllClientTick(int value)
-{
-	for (int i = 1; i <= MaxClients; i++)
-        if (IsClientInGame(i) && !IsFakeClient(i))
-            SetClientTickConVar(i, value);
-}
-//玩家连接游戏时.
-public void OnClientAuthorized(int client, const char[] auth)
-{
-	if(!IsFakeClient(client))
-		g_bShouldIgnore[client] = true;
-}
-//玩家转换队伍.
-void Event_PlayerTeam(Event event, const char[] name, bool dontBroadcast)
-{
-	int client = GetClientOfUserId(event.GetInt("userid"));
-	int oldteam = event.GetInt("oldteam");
-	int iTeam = event.GetInt("team");
-	
-	if(IsValidClient(client) && !IsFakeClient(client))
-	{
-		if(oldteam == 0 && iTeam != 0 && g_bShouldIgnore[client] == true)
-		{
-			g_bShouldIgnore[client] = false;
-			SetClientTickConVar(client, g_iTickValue);
-			//PrintToChatAll("\x04[换队]\x05(%d)(%N)团队(%d).", client, client, iTeam);
-		}
-	}
-}
-//设置玩家tick值.
-stock void SetClientTickConVar(int client, int value)
-{
-	char sData[32];
-	IntToString(value, sData, sizeof(sData));
-	SetClientInfo(client, "cl_updaterate", sData);
-	SetClientInfo(client, "cl_cmdrate", sData);
-}
-//判断玩家有效.
-stock bool IsValidClient(int client)
-{
-	return client > 0 && client <= MaxClients && IsClientInGame(client);
 }
