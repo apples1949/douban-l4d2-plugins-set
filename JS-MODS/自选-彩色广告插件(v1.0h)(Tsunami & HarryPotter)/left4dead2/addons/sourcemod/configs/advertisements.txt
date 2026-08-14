@@ -1,0 +1,66 @@
+// Types
+// -----
+// center: Center message
+// chat: Chat message
+// hint: Hint message
+// menu: Menu message
+//
+// -----
+//	Following named colors are supported in L4D1/L4D2:
+//	 - {default}	(white color)
+//	 - {green}		(olive color)
+//	 - {olive}		(green color)
+//	 - {lightgreen}	(light green color)
+//	 - {red}		(red color) - There must be at least one player or bot in infected team，or red will turn into {green} color
+//	 - {blue}		(blue color) - There must be at least one player or bot in survivor team，or blue will turn into {green} color 
+//	 Warning: {lightgreen}、{red}、{blue}, 2 of 3 colors can not be used at the same sentence
+
+// 中文說明
+// -----
+// center: 廣告文字顯示於螢幕中央
+// chat: 廣告文字顯示於聊天框
+// hint: 廣告文字顯示於螢幕下方黑底白字框
+// menu: 廣告文字顯示於Menu選單
+//
+// -----
+//	以下顏色只支援於 L4D1/L4D2:
+//	 - {default}	(白色)
+//	 - {green}		(橘色)
+//	 - {olive}		(綠色)
+//	 - {lightgreen}	(淺綠色)
+//	 - {red}		(紅色) - 特感隊伍要有人或bot在才會顯示紅色，否則顯示橘色
+//	 - {blue}		(藍色) - 人類隊伍要有人或bot在才會顯示藍色，否則顯示橘色
+//	 注意事項: 藍色、紅色、淺綠色，這三種顏色不可出現在同一句話裡
+//
+
+"Advertisements"
+{
+    "1"
+    {
+        "chat"  "{olive}[公告]{lightgreen}输入指令{olive}!buy{lightgreen}可打开购物菜单{olive}(允许闲置购物)."
+    }
+    "2"
+    {
+        "chat"  "{olive}[公告]{lightgreen}本服务器赞助商由猫猫云独家赞助,\n极速高频,稳定畅玩!{olive}官网地址：www.nekoidc.com"
+    }
+    "3"
+    {
+        "chat"  "{olive}[公告]{lightgreen}输入指令{olive}!vt{lightgreen}可打开投票菜单."
+    }
+    "4"
+    {
+        "chat"  "{olive}[公告]{lightgreen}输入指令{olive}!big{lightgreen}可打开大乐透菜单."
+    }
+    "5"
+    {
+        "chat"  "{olive}[公告]{lightgreen}输入指令{olive}!chmap{lightgreen}可投票更换地图."
+    }
+    "6"
+    {
+        "chat"  "{olive}[公告]{lightgreen}本服组链接{olive}http://steamcommunity.com/groups/30679018"
+    }
+    "7"
+    {
+        "chat"  "{olive}[公告]{lightgreen}本服务器地址：{olive}www.l4d2plus.cn:27032"
+    }
+}

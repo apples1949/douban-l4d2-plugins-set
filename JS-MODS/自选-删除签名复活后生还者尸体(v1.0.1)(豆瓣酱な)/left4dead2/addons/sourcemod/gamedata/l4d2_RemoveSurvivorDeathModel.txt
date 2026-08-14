@@ -1,0 +1,29 @@
+// Many thanks to Psykotikism for sharing the Windows signature (https://github.com/Psykotikism/L4D1-2_Signatures)
+"Games"
+{
+	"left4dead2"
+    {
+		"Functions"
+		{
+			"CTerrorPlayer::RoundRespawn"
+			{
+				"signature"		"CTerrorPlayer::RoundRespawn"
+				"callconv"		"thiscall"
+				"return"		"int"
+				"this"			"entity"
+			}
+		}
+
+		"Signatures"
+		{
+			/* CTerrorPlayer::RoundRespawn(void) */
+			"CTerrorPlayer::RoundRespawn"
+			{
+				"library"	"server"
+				"linux"		"@_ZN13CTerrorPlayer12RoundRespawnEv"
+				"windows"	"\x2A\x2A\x2A\x2A\x2A\x2A\x2A\x2A\xE8\x2A\x2A\x2A\x2A\x84\x2A\x75\x2A\x8B\x2A\xE8\x2A\x2A\x2A\x2A\xC6\x86"
+				/* ? ? ? ? ? ? ? ? E8 ? ? ? ? 84 ? 75 ? 8B ? E8 ? ? ? ? C6 86 */
+			}
+		}
+    }
+}

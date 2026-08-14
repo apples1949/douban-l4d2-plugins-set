@@ -1,0 +1,118 @@
+//29
+"Games"
+{
+	"left4dead2"
+	{
+		"Signatures"
+		{
+			"NextBotManager::ShouldUpdate"
+			{
+				"library" "server"
+				"linux"		"@_ZN14NextBotManager12ShouldUpdateEP8INextBot"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x08\x57\x8B\xF9\x83\x7F\x24\x01"
+			}
+
+			"NextBotManager::Register"
+			{
+				"library" "server"
+				"linux"		"@_ZN14NextBotManager8RegisterEP8INextBot"
+				"windows"	"\x2A\x2A\x2A\x2A\x2A\x2A\x79\x08\x6A\x00"
+			}
+
+			"NextBotManager::UnRegister"
+			{
+				"library" "server"
+				"linux"		"@_ZN14NextBotManager10UnRegisterEP8INextBot"
+				"windows"	"\x2A\x2A\x2A\x2A\x2A\x2A\x53\x56\x57\x8B\x78\x08"
+			}
+
+			"ZombieBotLocomotion::ZombieBotLocomotion"
+			{
+				"library" "server"
+				"linux"		"@_ZN19ZombieBotLocomotionC2EP8INextBot"
+				"windows"	"\x55\x8B\xEC\x8B\x45\x08\x56\x57\x50\x8B\xF1\xE8\x2A\x2A\x2A\x2A\x0F\x57\xC0\xC7\x06\x2A\x2A\x2A\x2A"
+			}
+
+			"TheNextBots"
+			{
+				"library" "server"
+				"linux"		"@_Z11TheNextBotsv"
+				"windows"	"\xB8\x01\x00\x00\x00\x84\x05\x2A\x2A\x2A\x2A\x0F\x85\x2A\x2A\x2A\x2A\x09\x05\x2A\x2A\x2A\x2A\x33\xC0"
+			}
+
+		}
+		"Offsets"
+		{
+			"OS"
+			{
+				"linux"		"1"
+				"windows"	    "0"
+			}
+
+		}
+
+		"Functions"
+		{
+			"NextBotManager::ShouldUpdate"
+			{
+				"signature" "NextBotManager::ShouldUpdate"
+				"callconv" "thiscall"
+				"return" "bool"
+				"this" "address"
+				"arguments"
+				{
+					"INextBot"
+					{
+						"type" "objectptr"
+					}
+				}
+			}
+
+			"NextBotManager::Register"
+			{
+				"signature" "NextBotManager::Register"
+				"callconv" "thiscall"
+				"return" "int"
+				"this" "address"
+				"arguments"
+				{
+					"INextBot"
+					{
+						"type" "objectptr"
+					}
+				}
+			}
+
+			"NextBotManager::UnRegister"
+			{
+				"signature" "NextBotManager::UnRegister"
+				"callconv" "thiscall"
+				"return" "int"
+				"this" "address"
+				"arguments"
+				{
+					"INextBot"
+					{
+						"type" "objectptr"
+					}
+				}
+			}
+
+			"ZombieBotLocomotion::ZombieBotLocomotion"
+			{
+				"signature" "ZombieBotLocomotion::ZombieBotLocomotion"
+				"callconv" "thiscall"
+				"return" "void"
+				"this" "address"
+				"arguments"
+				{
+					"INextBot"
+					{
+						"type" "objectptr"
+					}
+				}
+			}
+
+		}
+	}
+}
