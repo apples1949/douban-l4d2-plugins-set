@@ -1,0 +1,79 @@
+"Games"
+{
+	"left4dead"
+	{
+		"Offsets"
+		{
+			"CTerrorGun::AbortReload"
+			{
+				"windows"	"259"
+				"linux"		"260"
+			}
+			"CTerrorGun::FinishReload"
+			{
+				"windows"	"258"
+				"linux"		"259"
+			}
+			"CTerrorGun::Reload"
+			{
+				"windows"	"260"
+				"linux"		"261"
+			}
+		}
+
+		"Signatures"
+		{
+			"CTerrorGun::Reload"
+			{
+				"library"		"server"
+				"linux"			"@_ZN10CTerrorGun6ReloadEv"
+				"windows"		"\x83\x2A\x2A\x53\x56\x8B\x2A\xE8\x2A\x2A\x2A\x2A\x8B\x2A\x85\x2A\x74\x2A\x8B"
+				/* 83 ? ? 53 56 8B ? E8 ? ? ? ? 8B ? 85 ? 74 ? 8B */
+				/* VTable method. Using "!player->CanAttack()" 1 call below. */
+			}
+		}
+	}
+
+	"left4dead2"
+	{
+		"Offsets"
+		{
+			"CTerrorGun::AbortReload"
+			{
+				"windows"	"280"
+				"linux"		"281"
+			}
+			"CTerrorGun::FinishReload"
+			{
+				"windows"	"279"
+				"linux"		"280"
+			}
+			"CTerrorGun::Reload"
+			{
+				"windows"	"281"
+				"linux"		"282"
+			}
+		}
+
+		"Signatures"
+		{
+			"CTerrorGun::Reload"
+			{
+				"library"		"server"
+				"linux"			"@_ZN10CTerrorGun6ReloadEv"
+				"windows"		"\x2A\x2A\x2A\x2A\x2A\x2A\x53\x56\x8B\x2A\xE8\x2A\x2A\x2A\x2A\x8B\x2A\x85\x2A\x0F\x84\x2A\x2A\x2A\x2A\x8B\x2A\x2A\x2A\x2A\x2A\x83"
+				/* ? ? ? ? ? ? 53 56 8B ? E8 ? ? ? ? 8B ? 85 ? 0F 84 ? ? ? ? 8B ? ? ? ? ? 83 */
+				/* VTable method. Using "!player->CanAttack()" 1 call below. */
+			}
+
+			"CBaseShotgun::Reload"
+			{
+				"library"		"server"
+				"linux"			"@_ZN12CBaseShotgun6ReloadEv"
+				"windows"		"\x2A\x2A\x2A\x2A\x2A\x2A\x56\x57\x8B\xF1\xE8\x2A\x2A\x2A\x2A\x8B\xF8\x85\xFF\x0F\x84\x2A\x2A\x2A\x2A\x8B\x87\xD4\x1C\x00\x00"
+				/* ? ? ? ? ? ? 56 57 8B F1 E8 ? ? ? ? 8B F8 85 FF 0F 84 ? ? ? ? 8B 87 B4 1C 00 00 */
+				/* Signature provided by "Lux" and fixed for 2.2.1.3 update by "Crasher_3637" */
+			}
+		}
+	}
+}

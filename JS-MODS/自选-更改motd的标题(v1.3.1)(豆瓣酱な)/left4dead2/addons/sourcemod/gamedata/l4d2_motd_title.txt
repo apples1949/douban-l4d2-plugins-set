@@ -1,0 +1,27 @@
+"Games"
+{
+	"left4dead2"
+    {
+		"Functions"
+		{
+			"CCSPlayer::ShowMOTD"
+			{
+				"signature"		"CCSPlayer::ShowMOTD"
+				"callconv"		"thiscall"
+				"return"		"bool"
+				"this"			"entity"
+			}
+		}
+
+		"Signatures"
+		{
+			"CCSPlayer::ShowMOTD"
+			{
+				"library"	"server"
+				"linux"		"@_ZN9CCSPlayer8ShowMOTDEv"
+				"windows"	"\x57\x8B\xF9\x8B\x07\x8B\x90\x74\x07\x00\x00\xFF\xD2\x84\xC0\x0F\x85\x2A\x2A\x2A\x2A\x8B\x0D\x2A\x2A\x2A\x2A\x85\xC9"
+				/* 57 8B F9 8B 07 8B 90 74 07 00 00 FF D2 84 C0 0F 85 ? ? ? ? 8B 0D ? ? ? ? 85 C9 */
+			}
+		}
+    }
+}
