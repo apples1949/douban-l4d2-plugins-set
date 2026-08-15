@@ -1,7 +1,0 @@
-"hostport"
-{
-	"default"
-	{
-		"kDescription"		"Left 4 Dead 3"
-	}
-}
